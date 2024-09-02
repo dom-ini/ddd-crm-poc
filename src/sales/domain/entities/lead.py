@@ -101,11 +101,8 @@ class Lead(AggregateRoot):
     def customer_id(self) -> UUID:
         return self._customer_id
 
-    def assign_salesman(
-        self, new_salesman_id: UUID, requestor_id: UUID, is_manager: bool = False
-    ) -> Self:
-        if not is_manager:
-            self._check_assignment_permissions(requestor_id)
+    def assign_salesman(self, new_salesman_id: UUID, requestor_id: UUID) -> Self:
+        self._check_assignment_permissions(requestor_id)
         self._record_salesman_assignment(
             new_salesman_id=new_salesman_id, requestor_id=requestor_id
         )
@@ -121,7 +118,7 @@ class Lead(AggregateRoot):
         is_lead_owner = (
             self.has_assigned_salesman and self.assigned_salesman_id == requestor_id
         )
-        if not self.has_assigned_salesman or not is_lead_owner:
+        if not is_lead_owner:
             raise UnauthorizedLeadOwnerChange
 
     def _record_salesman_assignment(

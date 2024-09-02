@@ -6,7 +6,7 @@ class OnlyOwnerCanEditNotes(DomainException):
 
 
 class UnauthorizedLeadOwnerChange(DomainException):
-    message = "Only lead owner or manager can assign a lead"
+    message = "Only lead owner can assign a lead"
 
 
 class EmailOrPhoneNumberShouldBeSet(DomainException):
