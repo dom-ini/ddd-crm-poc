@@ -10,6 +10,8 @@ python = "^3.12"
 email-validator = "^2.2.0"
 phonenumbers = "^8.13.43"
 attrs = "^24.2.0"
+fastapi = {extras = ["standard"], version = "^0.112.2"}
+pydantic = "^2.8.2"
 
 
 [build-system]
