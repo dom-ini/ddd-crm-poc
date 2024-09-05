@@ -1,7 +1,10 @@
 from typing import Self
 from uuid import UUID
 from attrs import define, field
+import datetime as dt
+
 from building_blocks.domain.entity import AggregateRoot
+from building_blocks.domain.utils.date import get_current_timestamp
 from sales.domain.entities.notes import Notes, NotesHistory
 from sales.domain.exceptions import OnlyOwnerCanEditNotes
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
@@ -21,6 +24,7 @@ class Opportunity(AggregateRoot):
     _created_by_id: UUID = field(alias="created_by_id")
     _customer_id: UUID = field(alias="customer_id")
     _owner_id: UUID = field(alias="owner_id")
+    _created_at: dt.datetime = field(init=False, factory=get_current_timestamp)
     _offer: Offer = field(alias="offer")
     _notes: Notes = field(init=False)
 
@@ -32,13 +36,12 @@ class Opportunity(AggregateRoot):
         created_by_id: UUID,
         customer_id: UUID,
         owner_id: UUID,
-        notes_id: UUID,
         source: AcquisitionSource,
         stage: OpportunityStage,
         priority: Priority,
         offer: Offer,
     ) -> Self:
-        notes = Notes(id=notes_id)
+        notes = Notes()
         opportunity = cls(
             id=id,
             created_by_id=created_by_id,
@@ -60,6 +63,7 @@ class Opportunity(AggregateRoot):
         created_by_id: UUID,
         customer_id: UUID,
         owner_id: UUID,
+        created_at: dt.datetime,
         source: AcquisitionSource,
         stage: OpportunityStage,
         priority: Priority,
@@ -77,7 +81,12 @@ class Opportunity(AggregateRoot):
             offer=offer,
         )
         opportunity._notes = notes
+        opportunity._created_at = created_at
         return opportunity
+
+    @property
+    def created_at(self) -> dt.datetime:
+        return self._created_at
 
     @property
     def offer(self) -> Offer:

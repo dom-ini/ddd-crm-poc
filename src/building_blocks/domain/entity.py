@@ -18,6 +18,11 @@ class Entity:
         return hash(self.id)
 
 
+@define(eq=False, kw_only=True)
+class EntityWithoutId:
+    pass
+
+
 @define(eq=False, kw_only=True, frozen=True)
 class ReadOnlyEntity(Entity):
     pass
