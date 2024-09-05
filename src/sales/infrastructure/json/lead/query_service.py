@@ -31,10 +31,8 @@ class LeadJsonQueryService(
         return next(leads, None)
 
     @call_method_before("_reload_data")
-    def get(self, lead_id: str) -> LeadReadModel:
+    def get(self, lead_id: str) -> LeadReadModel | None:
         lead = self._get_single_lead_dto(lead_id)
-        if lead is None:
-            raise LeadDoesNotExist
         return lead and lead.to_read_model()
 
     @call_method_before("_reload_data")
@@ -57,18 +55,20 @@ class LeadJsonQueryService(
         return tuple(leads)
 
     @call_method_before("_reload_data")
-    def get_assignment_history(self, lead_id: str) -> tuple[AssignmentReadModel, ...]:
+    def get_assignment_history(
+        self, lead_id: str
+    ) -> tuple[AssignmentReadModel, ...] | None:
         lead = self._get_single_lead_dto(lead_id)
         if lead is None:
-            raise LeadDoesNotExist
+            return None
         assignments = (assignment.to_read_model() for assignment in lead.assignments)
         return tuple(assignments)
 
     @call_method_before("_reload_data")
-    def get_notes(self, lead_id: str) -> tuple[NoteReadModel, ...]:
+    def get_notes(self, lead_id: str) -> tuple[NoteReadModel, ...] | None:
         lead = self._get_single_lead_dto(lead_id)
         if lead is None:
-            raise LeadDoesNotExist
+            return None
         notes = (note.to_read_model() for note in lead.notes)
         return tuple(notes)
 

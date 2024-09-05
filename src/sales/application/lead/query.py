@@ -1,3 +1,4 @@
+from sales.application.lead.exceptions import LeadDoesNotExist
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.lead.query_service import LeadQueryService
 from sales.application.notes.query_model import NoteReadModel
@@ -8,7 +9,10 @@ class LeadQueryUseCase:
         self.lead_query_service = lead_query_service
 
     def get(self, lead_id: str) -> LeadReadModel:
-        return self.lead_query_service.get(lead_id=lead_id)
+        lead = self.lead_query_service.get(lead_id)
+        if lead is None:
+            raise LeadDoesNotExist
+        return lead
 
     def get_all(self) -> tuple[LeadReadModel]:
         leads = self.lead_query_service.get_all()
@@ -24,8 +28,12 @@ class LeadQueryUseCase:
 
     def get_assignment_history(self, lead_id: str) -> tuple[AssignmentReadModel, ...]:
         assignments = self.lead_query_service.get_assignment_history(lead_id)
+        if assignments is None:
+            raise LeadDoesNotExist
         return assignments
 
     def get_notes(self, lead_id: str) -> tuple[NoteReadModel, ...]:
         notes = self.lead_query_service.get_notes(lead_id)
+        if notes is None:
+            raise LeadDoesNotExist
         return notes
