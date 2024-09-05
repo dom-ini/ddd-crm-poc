@@ -11,7 +11,7 @@ class LeadReadModel(BaseReadModel[Lead]):
     id: str
     customer_id: str
     created_by_salesman_id: str
-    assigned_salesman_id: str
+    assigned_salesman_id: str | None
     created_at: dt.datetime
     source: str
     contact_first_name: str
