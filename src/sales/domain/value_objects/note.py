@@ -12,7 +12,7 @@ class Note(ValueObject):
 
     created_by_id: UUID
     content: str
-    created_at: dt.datetime = field(init=False, factory=get_current_timestamp)
+    created_at: dt.datetime
 
     def __str__(self) -> str:
         suffix = "..." if len(self.content) > self._PRINTABLE_CONTENT_LENGTH else ""
