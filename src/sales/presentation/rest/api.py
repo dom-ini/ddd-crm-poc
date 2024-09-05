@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from sales.application.lead.exceptions import LeadDoesNotExist
 from sales.application.lead.query import LeadQueryUseCase
@@ -77,7 +77,3 @@ async def get_lead_notes(
     except LeadDoesNotExist as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
     return notes
-
-
-app = FastAPI()
-app.include_router(router)
