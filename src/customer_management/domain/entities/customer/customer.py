@@ -1,5 +1,4 @@
 from typing import Self
-from uuid import UUID
 
 from attrs import define, field
 from building_blocks.domain.entity import AggregateRoot
@@ -36,7 +35,7 @@ def get_unique_contact_person_fields(contact_person: ContactPerson) -> tuple:
 @define(eq=False, kw_only=True)
 class Customer(AggregateRoot):
     company_info: CompanyInfo
-    _relation_manager_id: UUID = field(alias="relation_manager_id")
+    _relation_manager_id: str = field(alias="relation_manager_id")
     _status: CustomerStatus = field(init=False)
     _contact_persons: ContactPersons = field(init=False, factory=tuple)
 
@@ -44,8 +43,8 @@ class Customer(AggregateRoot):
     def reconstitute(
         cls,
         *,
-        id: UUID,
-        relation_manager_id: UUID,
+        id: str,
+        relation_manager_id: str,
         company_info: CompanyInfo,
         status: CustomerStatus,
         contact_persons: ContactPersons,
@@ -73,10 +72,10 @@ class Customer(AggregateRoot):
         return self._status
 
     @property
-    def relation_manager_id(self) -> UUID:
+    def relation_manager_id(self) -> str:
         return self._relation_manager_id
 
-    def change_relation_manager(self, new_relation_manager_id: UUID) -> Self:
+    def change_relation_manager(self, new_relation_manager_id: str) -> Self:
         self._relation_manager_id = new_relation_manager_id
         return self
 
@@ -90,7 +89,7 @@ class Customer(AggregateRoot):
 
     def add_contact_person(
         self,
-        contact_person_id: UUID,
+        contact_person_id: str,
         first_name: str,
         last_name: str,
         job_title: str,
@@ -112,7 +111,7 @@ class Customer(AggregateRoot):
         self._contact_persons = new_contact_persons
         return self
 
-    def remove_contact_person(self, id_to_remove: UUID) -> Self:
+    def remove_contact_person(self, id_to_remove: str) -> Self:
         new_contact_persons = tuple(
             person for person in self._contact_persons if id_to_remove != person.id
         )
@@ -123,7 +122,7 @@ class Customer(AggregateRoot):
 
     def _create_contact_person(
         self,
-        contact_person_id: UUID,
+        contact_person_id: str,
         first_name: str,
         last_name: str,
         job_title: str,

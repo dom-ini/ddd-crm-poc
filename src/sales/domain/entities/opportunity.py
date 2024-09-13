@@ -1,5 +1,4 @@
 from typing import Self
-from uuid import UUID
 from attrs import define, field
 import datetime as dt
 
@@ -21,9 +20,9 @@ class Opportunity(AggregateRoot):
     source: AcquisitionSource
     stage: OpportunityStage
     priority: Priority
-    _created_by_id: UUID = field(alias="created_by_id")
-    _customer_id: UUID = field(alias="customer_id")
-    _owner_id: UUID = field(alias="owner_id")
+    _created_by_id: str = field(alias="created_by_id")
+    _customer_id: str = field(alias="customer_id")
+    _owner_id: str = field(alias="owner_id")
     _created_at: dt.datetime = field(init=False, factory=get_current_timestamp)
     _offer: Offer = field(alias="offer")
     _notes: Notes = field(init=False)
@@ -32,10 +31,10 @@ class Opportunity(AggregateRoot):
     def make(
         cls,
         *,
-        id: UUID,
-        created_by_id: UUID,
-        customer_id: UUID,
-        owner_id: UUID,
+        id: str,
+        created_by_id: str,
+        customer_id: str,
+        owner_id: str,
         source: AcquisitionSource,
         stage: OpportunityStage,
         priority: Priority,
@@ -59,10 +58,10 @@ class Opportunity(AggregateRoot):
     def reconstitute(
         cls,
         *,
-        id: UUID,
-        created_by_id: UUID,
-        customer_id: UUID,
-        owner_id: UUID,
+        id: str,
+        created_by_id: str,
+        customer_id: str,
+        owner_id: str,
         created_at: dt.datetime,
         source: AcquisitionSource,
         stage: OpportunityStage,
@@ -93,11 +92,11 @@ class Opportunity(AggregateRoot):
         return self._offer
 
     @property
-    def customer_id(self) -> UUID:
+    def customer_id(self) -> str:
         return self._customer_id
 
     @property
-    def owner_id(self) -> UUID:
+    def owner_id(self) -> str:
         return self._owner_id
 
     @property
@@ -108,7 +107,7 @@ class Opportunity(AggregateRoot):
     def notes_history(self) -> NotesHistory:
         return self._notes.history
 
-    def change_note(self, new_content: str, editor_id: UUID) -> Self:
+    def change_note(self, new_content: str, editor_id: str) -> Self:
         if not editor_id == self.owner_id:
             raise OnlyOwnerCanEditNotes
         self._notes.change_note(new_content=new_content, editor_id=editor_id)

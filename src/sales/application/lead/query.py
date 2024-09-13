@@ -2,6 +2,7 @@ from sales.application.lead.exceptions import LeadDoesNotExist
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.lead.query_service import LeadQueryService
 from sales.application.notes.query_model import NoteReadModel
+from src.building_blocks.application.filters import FilterCondition, FilterConditionType
 
 
 class LeadQueryUseCase:
@@ -18,12 +19,42 @@ class LeadQueryUseCase:
         leads = self.lead_query_service.get_all()
         return leads
 
-    def get_by_customer_and_owner(
-        self, owner_id: str | None = None, customer_id: str | None = None
+    def get_filtered(
+        self,
+        customer_id: str | None = None,
+        owner_id: str | None = None,
+        contact_company_name: str | None = None,
+        contact_phone: str | None = None,
+        contact_email: str | None = None,
     ) -> tuple[LeadReadModel]:
-        leads = self.lead_query_service.get_by_customer_and_owner_id(
-            owner_id=owner_id, customer_id=customer_id
-        )
+        filters = [
+            FilterCondition(
+                field="customer_id",
+                value=customer_id,
+                condition_type=FilterConditionType.EQUALS,
+            ),
+            FilterCondition(
+                field="salesman_id",
+                value=owner_id,
+                condition_type=FilterConditionType.EQUALS,
+            ),
+            FilterCondition(
+                field="contact_data.phone",
+                value=contact_phone,
+                condition_type=FilterConditionType.ICONTAINS,
+            ),
+            FilterCondition(
+                field="contact_data.email",
+                value=contact_email,
+                condition_type=FilterConditionType.ICONTAINS,
+            ),
+            FilterCondition(
+                field="contact_data.company_name",
+                value=contact_company_name,
+                condition_type=FilterConditionType.ICONTAINS,
+            ),
+        ]
+        leads = self.lead_query_service.get_filtered(filters)
         return leads
 
     def get_assignment_history(self, lead_id: str) -> tuple[AssignmentReadModel, ...]:

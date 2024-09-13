@@ -1,6 +1,5 @@
 import datetime as dt
 from typing import Literal, get_args
-from uuid import UUID
 from attrs import define, field
 
 from building_blocks.domain.attrs_validators import attrs_value_in
@@ -15,8 +14,8 @@ ALLOWED_ACTIVITY_TYPES = get_args(ActivityType)
 class Activity:
     _DATE_FORMAT: str = field(init=False, default=DEFAULT_DATE_FORMAT)
 
-    opportunity_id = UUID
-    undertaken_by_id: UUID
+    opportunity_id = str
+    undertaken_by_id: str
     activity_type: ActivityType = field(
         validator=attrs_value_in(ALLOWED_ACTIVITY_TYPES)
     )

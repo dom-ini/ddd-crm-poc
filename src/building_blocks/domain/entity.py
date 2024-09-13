@@ -1,13 +1,11 @@
 from typing import Any
 
-from uuid import UUID, uuid4
-
 from attrs import define
 
 
 @define(eq=False, kw_only=True)
 class Entity:
-    id: UUID
+    id: str
 
     def __eq__(self, value: Any) -> bool:
         if isinstance(value, type(self)):

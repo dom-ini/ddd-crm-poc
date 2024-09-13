@@ -1,4 +1,3 @@
-from uuid import UUID
 from attrs import define, field
 from building_blocks.domain.entity import EntityWithoutId
 from building_blocks.domain.utils.date import get_current_timestamp
@@ -12,18 +11,23 @@ class LeadAssignments(EntityWithoutId):
     _history: AssignmentHistory = field(alias="history", factory=tuple)
 
     @property
-    def currently_assigned_salesman_id(self) -> UUID | None:
-        if not len(self.history):
+    def currently_assigned_salesman_id(self) -> str | None:
+        most_recent = self.most_recent
+        if most_recent is None:
             return None
-        return self._history[-1].new_owner_id
+        return most_recent.new_owner_id
 
     @property
     def history(self) -> AssignmentHistory:
         return self._history
 
-    def change_assigned_salesman(
-        self, new_salesman_id: UUID, requestor_id: UUID
-    ) -> None:
+    @property
+    def most_recent(self) -> LeadAssignmentEntry | None:
+        if len(self.history) == 0:
+            return None
+        return self.history[-1]
+
+    def change_assigned_salesman(self, new_salesman_id: str, requestor_id: str) -> None:
         assigned_from = self.currently_assigned_salesman_id
         assignment = self._create_lead_assignment(
             previous_salesman_id=assigned_from,
@@ -33,7 +37,7 @@ class LeadAssignments(EntityWithoutId):
         self._history = self._history + (assignment,)
 
     def _create_lead_assignment(
-        self, previous_salesman_id: UUID, new_salesman_id: UUID, requestor_id: UUID
+        self, previous_salesman_id: str, new_salesman_id: str, requestor_id: str
     ) -> LeadAssignmentEntry:
         return LeadAssignmentEntry(
             previous_owner_id=previous_salesman_id,

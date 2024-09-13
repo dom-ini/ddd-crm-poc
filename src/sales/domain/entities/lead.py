@@ -1,9 +1,9 @@
 from typing import Self
-from uuid import UUID
 import datetime as dt
 
 from attrs import define, field
 from building_blocks.domain.utils.date import get_current_timestamp
+from building_blocks.domain.entity import AggregateRoot
 from sales.domain.entities.lead_assignments import AssignmentHistory, LeadAssignments
 from sales.domain.entities.notes import Notes, NotesHistory
 from sales.domain.exceptions import (
@@ -13,15 +13,15 @@ from sales.domain.exceptions import (
 from sales.domain.value_objects.contact_data import ContactData
 from sales.domain.value_objects.note import Note
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
-from building_blocks.domain.entity import AggregateRoot
+from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
 
 
 @define(eq=False, kw_only=True)
 class Lead(AggregateRoot):
     contact_data: ContactData
     source: AcquisitionSource
-    _customer_id: UUID = field(alias="customer_id")
-    _created_by_salesman_id: UUID = field(alias="created_by_salesman_id")
+    _customer_id: str = field(alias="customer_id")
+    _created_by_salesman_id: str = field(alias="created_by_salesman_id")
     _created_at: dt.datetime = field(init=False, factory=get_current_timestamp)
     _assignments: LeadAssignments = field(init=False)
     _notes: Notes = field(init=False)
@@ -30,9 +30,9 @@ class Lead(AggregateRoot):
     def make(
         cls,
         *,
-        id: UUID,
-        customer_id: UUID,
-        created_by_salesman_id: UUID,
+        id: str,
+        customer_id: str,
+        created_by_salesman_id: str,
         contact_data: ContactData,
         source: AcquisitionSource,
     ) -> Self:
@@ -53,9 +53,9 @@ class Lead(AggregateRoot):
     def reconstitute(
         cls,
         *,
-        id: UUID,
-        customer_id: UUID,
-        created_by_salesman_id: UUID,
+        id: str,
+        customer_id: str,
+        created_by_salesman_id: str,
         created_at: dt.datetime,
         contact_data: ContactData,
         source: AcquisitionSource,
@@ -87,7 +87,7 @@ class Lead(AggregateRoot):
         return self._notes.history
 
     @property
-    def assigned_salesman_id(self) -> UUID | None:
+    def assigned_salesman_id(self) -> str | None:
         return self._assignments.currently_assigned_salesman_id
 
     @property
@@ -99,27 +99,33 @@ class Lead(AggregateRoot):
         return self._assignments.history
 
     @property
-    def created_by_salesman_id(self) -> UUID:
+    def most_recent_assignment(self) -> LeadAssignmentEntry | None:
+        return self._assignments.most_recent
+
+    @property
+    def created_by_salesman_id(self) -> str:
         return self._created_by_salesman_id
 
     @property
-    def customer_id(self) -> UUID:
+    def customer_id(self) -> str:
         return self._customer_id
 
-    def assign_salesman(self, new_salesman_id: UUID, requestor_id: UUID) -> Self:
+    def assign_salesman(self, new_salesman_id: str, requestor_id: str) -> Self:
         self._check_assignment_permissions(requestor_id)
         self._assignments.change_assigned_salesman(
             new_salesman_id=new_salesman_id, requestor_id=requestor_id
         )
         return self
 
-    def change_note(self, new_content: str, editor_id: UUID) -> Self:
-        if self.has_assigned_salesman and not editor_id == self.assigned_salesman_id:
+    def change_note(self, new_content: str, editor_id: str) -> Self:
+        if not self.has_assigned_salesman or (
+            self.has_assigned_salesman and not editor_id == self.assigned_salesman_id
+        ):
             raise OnlyOwnerCanEditNotes
         self._notes.change_note(new_content=new_content, editor_id=editor_id)
         return self
 
-    def _check_assignment_permissions(self, requestor_id: UUID) -> None:
+    def _check_assignment_permissions(self, requestor_id: str) -> None:
         if self.has_assigned_salesman and self.assigned_salesman_id != requestor_id:
             raise UnauthorizedLeadOwnerChange
 

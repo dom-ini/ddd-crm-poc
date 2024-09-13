@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Iterable
 
+from building_blocks.application.filters import FilterCondition
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.notes.query_model import NoteReadModel
 
@@ -12,8 +14,8 @@ class LeadQueryService(ABC):
     def get_all(self) -> tuple[LeadReadModel]: ...
 
     @abstractmethod
-    def get_by_customer_and_owner_id(
-        self, customer_id: str | None, owner_id: str | None
+    def get_filtered(
+        self, filters: Iterable[FilterCondition]
     ) -> tuple[LeadReadModel, ...]: ...
 
     @abstractmethod

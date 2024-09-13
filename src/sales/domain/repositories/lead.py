@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
-from uuid import UUID
 
 from sales.domain.entities.lead import Lead
 
 
 class LeadRepository(ABC):
     @abstractmethod
-    def create(self, lead: Lead) -> Lead: ...
+    def get(self, lead_id: str) -> Lead | None: ...
 
     @abstractmethod
-    def get_by_id(self, lead_id: UUID) -> Lead: ...
+    def create(self, lead: Lead) -> None: ...
+
+    @abstractmethod
+    def update(self, lead: Lead) -> None: ...
