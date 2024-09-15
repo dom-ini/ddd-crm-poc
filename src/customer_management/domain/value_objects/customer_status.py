@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Protocol, Self, Tuple
 from attrs import define, field
 from customer_management.domain.exceptions import (
@@ -8,6 +9,12 @@ from customer_management.domain.exceptions import (
 )
 
 ContactPersons = Tuple
+
+
+class CustomerStatusName(str, Enum):
+    INITIAL = "initial"
+    CONVERTED = "converted"
+    ARCHIVED = "archived"
 
 
 class Customer(Protocol):
@@ -43,7 +50,7 @@ class CustomerStatus(ABC):
 
 @define(frozen=True)
 class InitialStatus(CustomerStatus):
-    name: str = field(init=False, default="initial")
+    name: str = field(init=False, default=CustomerStatusName.INITIAL)
     customer: Customer
 
     def convert(self) -> None:
@@ -60,7 +67,7 @@ class InitialStatus(CustomerStatus):
 
 @define(frozen=True)
 class ConvertedStatus(CustomerStatus):
-    name: str = field(init=False, default="converted")
+    name: str = field(init=False, default=CustomerStatusName.CONVERTED)
     customer: Customer
 
     def convert(self) -> None:
@@ -76,7 +83,7 @@ class ConvertedStatus(CustomerStatus):
 
 @define(frozen=True)
 class ArchivedStatus(CustomerStatus):
-    name: str = field(init=False, default="archived")
+    name: str = field(init=False, default=CustomerStatusName.ARCHIVED)
     customer: Customer
 
     def convert(self) -> None:

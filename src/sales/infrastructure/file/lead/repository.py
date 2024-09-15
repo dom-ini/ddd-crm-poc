@@ -1,7 +1,7 @@
 import shelve
 from sales.domain.repositories.lead import LeadRepository
 from sales.domain.entities.lead import Lead
-from src.building_blocks.infrastructure.exceptions import (
+from building_blocks.infrastructure.exceptions import (
     ObjectAlreadyExists,
     ObjectDoesNotExist,
 )

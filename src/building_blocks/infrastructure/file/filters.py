@@ -22,7 +22,7 @@ class FileFilterService[Entity]:
     def _apply_single_filter(self, type: str) -> Callable[[Entity, str, Any], bool]:
         if type == FilterConditionType.EQUALS:
             return self._equals
-        if type == FilterConditionType.ICONTAINS:
+        if type == FilterConditionType.SEARCH:
             return self._icontains
         raise InvalidFilterType
 

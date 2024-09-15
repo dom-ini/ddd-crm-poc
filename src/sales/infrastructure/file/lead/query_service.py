@@ -16,11 +16,11 @@ class LeadFileQueryService(LeadQueryService):
         self,
         leads_file_path: str = config.LEADS_FILE_PATH,
     ) -> None:
-        self._leads_file_path = leads_file_path
+        self._file_path = leads_file_path
         self._filter_service = self.FilterServiceType()
 
     def _get_single_lead(self, lead_id: str) -> Lead | None:
-        with get_read_db(self._leads_file_path) as db:
+        with get_read_db(self._file_path) as db:
             lead = db.get(lead_id)
         return lead
 
@@ -31,7 +31,7 @@ class LeadFileQueryService(LeadQueryService):
         return LeadReadModel.from_domain(lead)
 
     def get_all(self) -> tuple[LeadReadModel]:
-        with get_read_db(self._leads_file_path) as db:
+        with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             leads = [LeadReadModel.from_domain(db.get(id)) for id in all_ids]
         return tuple(leads)
@@ -39,7 +39,7 @@ class LeadFileQueryService(LeadQueryService):
     def get_filtered(
         self, filters: Iterable[FilterCondition]
     ) -> tuple[LeadReadModel, ...]:
-        with get_read_db(self._leads_file_path) as db:
+        with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             leads: Iterator[Lead] = (db.get(id) for id in all_ids)
             filtered_leads = [
