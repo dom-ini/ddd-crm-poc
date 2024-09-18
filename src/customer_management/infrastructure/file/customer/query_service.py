@@ -31,7 +31,7 @@ class CustomerFileQueryService(CustomerQueryService):
             return None
         return CustomerReadModel.from_domain(customer)
 
-    def get_all(self) -> tuple[CustomerReadModel]:
+    def get_all(self) -> Iterable[CustomerReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             customers = [CustomerReadModel.from_domain(db.get(id)) for id in all_ids]
@@ -39,7 +39,7 @@ class CustomerFileQueryService(CustomerQueryService):
 
     def get_filtered(
         self, filters: Iterable[FilterCondition]
-    ) -> tuple[CustomerReadModel, ...]:
+    ) -> Iterable[CustomerReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             customers: Iterator[Customer] = (db.get(id) for id in all_ids)
@@ -52,7 +52,7 @@ class CustomerFileQueryService(CustomerQueryService):
 
     def get_contact_persons(
         self, customer_id: str
-    ) -> tuple[ContactPersonReadModel, ...] | None:
+    ) -> Iterable[ContactPersonReadModel] | None:
         customer = self._get_single_customer(customer_id)
         if customer is None:
             return None

@@ -196,7 +196,7 @@ class CustomerCommandUseCase:
 
     def _create_contact_methods(
         self, data: Iterable[ContactMethodCreateUpdateModel]
-    ) -> tuple[ContactMethod]:
+    ) -> Iterable[ContactMethod]:
         contact_methods = tuple(
             self._create_single_contact_method(method) for method in data
         )

@@ -6,7 +6,7 @@ ItemCallback = Callable[[ItemType], Any]
 
 def get_duplicates(
     values: Iterable[ItemType], value_callback: ItemCallback = lambda x: x
-) -> tuple[ItemType]:
+) -> Iterable[ItemType]:
     seen = set()
     duplicates = set()
     for item in values:

@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Self
 from attrs import define, field, Attribute
 from building_blocks.domain.validators import validate_no_duplicates
@@ -8,10 +9,10 @@ from customer_management.domain.value_objects.contact_method import ContactMetho
 from customer_management.domain.value_objects.language import Language
 from building_blocks.domain.entity import Entity, ReadOnlyEntity
 
-ContactMethods = tuple[ContactMethod, ...]
+ContactMethods = Iterable[ContactMethod]
 
 
-def get_unique_contact_method_fields(contact_method: ContactMethod) -> tuple:
+def get_unique_contact_method_fields(contact_method: ContactMethod) -> Iterable:
     return (contact_method.type, contact_method.value)
 
 

@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.lead.query_service import LeadQueryService
 from sales.application.notes.query_model import NoteReadModel
@@ -15,7 +16,7 @@ class LeadQueryUseCase:
             raise ObjectDoesNotExist(lead_id)
         return lead
 
-    def get_all(self) -> tuple[LeadReadModel]:
+    def get_all(self) -> Iterable[LeadReadModel]:
         leads = self.lead_query_service.get_all()
         return leads
 
@@ -26,7 +27,7 @@ class LeadQueryUseCase:
         contact_company_name: str | None = None,
         contact_phone: str | None = None,
         contact_email: str | None = None,
-    ) -> tuple[LeadReadModel]:
+    ) -> Iterable[LeadReadModel]:
         filters = [
             FilterCondition(
                 field="customer_id",
@@ -57,13 +58,13 @@ class LeadQueryUseCase:
         leads = self.lead_query_service.get_filtered(filters)
         return leads
 
-    def get_assignment_history(self, lead_id: str) -> tuple[AssignmentReadModel, ...]:
+    def get_assignment_history(self, lead_id: str) -> Iterable[AssignmentReadModel]:
         assignments = self.lead_query_service.get_assignment_history(lead_id)
         if assignments is None:
             raise ObjectDoesNotExist(lead_id)
         return assignments
 
-    def get_notes(self, lead_id: str) -> tuple[NoteReadModel, ...]:
+    def get_notes(self, lead_id: str) -> Iterable[NoteReadModel]:
         notes = self.lead_query_service.get_notes(lead_id)
         if notes is None:
             raise ObjectDoesNotExist(lead_id)

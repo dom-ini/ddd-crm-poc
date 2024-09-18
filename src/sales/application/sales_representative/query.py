@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from sales.application.sales_representative.query_service import (
     SalesRepresentativeQueryService,
 )
@@ -17,6 +18,6 @@ class SalesRepresentativeQueryUseCase:
             raise ObjectDoesNotExist(representative_id)
         return representative
 
-    def get_all(self) -> tuple[SalesRepresentativeReadModel]:
+    def get_all(self) -> Iterable[SalesRepresentativeReadModel]:
         representatives = self.sr_query_service.get_all()
         return representatives

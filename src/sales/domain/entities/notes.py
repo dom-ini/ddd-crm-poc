@@ -1,10 +1,11 @@
+from collections.abc import Iterable
 from attrs import define, field
 from building_blocks.domain.entity import EntityWithoutId
 from building_blocks.domain.utils.date import get_current_timestamp
 from sales.domain.value_objects.note import Note
 
 
-NotesHistory = tuple[Note]
+NotesHistory = Iterable[Note]
 
 
 @define(eq=False, kw_only=True)

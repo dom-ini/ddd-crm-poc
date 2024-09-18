@@ -30,7 +30,7 @@ class LeadFileQueryService(LeadQueryService):
             return None
         return LeadReadModel.from_domain(lead)
 
-    def get_all(self) -> tuple[LeadReadModel]:
+    def get_all(self) -> Iterable[LeadReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             leads = [LeadReadModel.from_domain(db.get(id)) for id in all_ids]
@@ -38,7 +38,7 @@ class LeadFileQueryService(LeadQueryService):
 
     def get_filtered(
         self, filters: Iterable[FilterCondition]
-    ) -> tuple[LeadReadModel, ...]:
+    ) -> Iterable[LeadReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             leads: Iterator[Lead] = (db.get(id) for id in all_ids)
@@ -51,7 +51,7 @@ class LeadFileQueryService(LeadQueryService):
 
     def get_assignment_history(
         self, lead_id: str
-    ) -> tuple[AssignmentReadModel, ...] | None:
+    ) -> Iterable[AssignmentReadModel] | None:
         lead = self._get_single_lead(lead_id)
         if lead is None:
             return None
@@ -61,7 +61,7 @@ class LeadFileQueryService(LeadQueryService):
         )
         return tuple(assignments)
 
-    def get_notes(self, lead_id: str) -> tuple[NoteReadModel, ...] | None:
+    def get_notes(self, lead_id: str) -> Iterable[NoteReadModel] | None:
         lead = self._get_single_lead(lead_id)
         if lead is None:
             return None

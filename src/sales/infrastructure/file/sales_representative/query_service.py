@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from sales.application.sales_representative.query_service import (
     SalesRepresentativeQueryService,
 )
@@ -29,7 +30,7 @@ class SalesRepresentativeFileQueryService(SalesRepresentativeQueryService):
             return None
         return SalesRepresentativeReadModel.from_domain(representative)
 
-    def get_all(self) -> tuple[SalesRepresentativeReadModel]:
+    def get_all(self) -> Iterable[SalesRepresentativeReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             representatives = [

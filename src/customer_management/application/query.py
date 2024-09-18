@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from building_blocks.application.filters import FilterCondition, FilterConditionType
 from customer_management.application.query_service import CustomerQueryService
 from customer_management.application.query_model import (
@@ -17,7 +18,7 @@ class CustomerQueryUseCase:
             raise ObjectDoesNotExist(customer_id)
         return customer
 
-    def get_all(self) -> tuple[CustomerReadModel]:
+    def get_all(self) -> Iterable[CustomerReadModel]:
         customers = self.customer_query_service.get_all()
         return customers
 
@@ -29,7 +30,7 @@ class CustomerQueryUseCase:
         industry: str | None = None,
         company_size: str | None = None,
         legal_form: str | None = None,
-    ) -> tuple[CustomerReadModel]:
+    ) -> Iterable[CustomerReadModel]:
         filters = [
             FilterCondition(
                 field="relation_manager_id",
@@ -65,7 +66,7 @@ class CustomerQueryUseCase:
         customers = self.customer_query_service.get_filtered(filters)
         return customers
 
-    def get_contact_persons(self, customer_id: str) -> tuple[ContactPersonReadModel]:
+    def get_contact_persons(self, customer_id: str) -> Iterable[ContactPersonReadModel]:
         contact_persons = self.customer_query_service.get_contact_persons(customer_id)
         if contact_persons is None:
             raise ObjectDoesNotExist(customer_id)

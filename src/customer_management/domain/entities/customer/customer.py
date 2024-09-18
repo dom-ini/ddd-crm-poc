@@ -24,8 +24,8 @@ from customer_management.domain.value_objects.language import Language
 from customer_management.domain.entities.contact_person.validators import ContactMethod
 
 
-ContactPersons = tuple[ContactPerson, ...]
-ContactPersonsReadOnly = tuple[ContactPersonReadOnly, ...]
+ContactPersons = Iterable[ContactPerson]
+ContactPersonsReadOnly = Iterable[ContactPersonReadOnly]
 
 
 def get_unique_contact_person_fields(contact_person: ContactPerson) -> tuple:
@@ -196,10 +196,10 @@ class Customer(AggregateRoot):
             for i, person in enumerate(self._contact_persons)
             if person.id == contact_person_id
         )
-        id_ = next(persons_ids, None)
+        id_, contact_person = next(persons_ids, (None, None))
         if id_ is None:
             raise ContactPersonDoesNotExist
-        return id_
+        return id_, contact_person
 
     def _create_contact_person(
         self,

@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Protocol
 from customer_management.domain.exceptions import NotEnoughPreferredContactMethods
 
@@ -6,7 +7,7 @@ class ContactMethod(Protocol):
     is_preferred: bool
 
 
-ContactMethods = tuple[ContactMethod, ...]
+ContactMethods = Iterable[ContactMethod]
 
 
 def at_least_one_preferred_contact_method(methods: ContactMethods) -> None:
