@@ -68,7 +68,7 @@ class Opportunity(AggregateRoot):
         priority: Priority,
         offer: Offer,
         notes: Notes,
-    ):
+    ) -> Self:
         opportunity = cls(
             id=id,
             created_by_id=created_by_id,
