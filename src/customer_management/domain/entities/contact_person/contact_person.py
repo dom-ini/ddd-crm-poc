@@ -11,6 +11,10 @@ from building_blocks.domain.entity import Entity, ReadOnlyEntity
 ContactMethods = tuple[ContactMethod, ...]
 
 
+def get_unique_contact_method_fields(contact_method: ContactMethod) -> tuple:
+    return (contact_method.type, contact_method.value)
+
+
 @define(eq=False, kw_only=True)
 class ContactPerson(Entity):
     first_name: str
@@ -27,7 +31,7 @@ class ContactPerson(Entity):
     def _validate_contact_methods(
         self, _attribute: Attribute, value: ContactMethods
     ) -> None:
-        validate_no_duplicates(value)
+        validate_no_duplicates(value, get_unique_contact_method_fields)
         at_least_one_preferred_contact_method(value)
 
     def to_read_only(self) -> "ContactPersonReadOnly":

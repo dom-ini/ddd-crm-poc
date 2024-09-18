@@ -20,7 +20,3 @@ class NoActiveTransaction(InfrastructureException):
 
 class ObjectAlreadyExists(InfrastructureException):
     pass
-
-
-class ObjectDoesNotExist(InfrastructureException):
-    pass

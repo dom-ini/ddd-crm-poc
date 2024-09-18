@@ -4,7 +4,7 @@ from customer_management.application.query_model import (
     ContactPersonReadModel,
     CustomerReadModel,
 )
-from customer_management.application.exceptions import CustomerDoesNotExist
+from building_blocks.application.exceptions import ObjectDoesNotExist
 
 
 class CustomerQueryUseCase:
@@ -14,7 +14,7 @@ class CustomerQueryUseCase:
     def get(self, customer_id: str) -> CustomerReadModel:
         customer = self.customer_query_service.get(customer_id)
         if customer is None:
-            raise CustomerDoesNotExist
+            raise ObjectDoesNotExist(customer_id)
         return customer
 
     def get_all(self) -> tuple[CustomerReadModel]:
@@ -68,5 +68,5 @@ class CustomerQueryUseCase:
     def get_contact_persons(self, customer_id: str) -> tuple[ContactPersonReadModel]:
         contact_persons = self.customer_query_service.get_contact_persons(customer_id)
         if contact_persons is None:
-            raise CustomerDoesNotExist
+            raise ObjectDoesNotExist(customer_id)
         return contact_persons

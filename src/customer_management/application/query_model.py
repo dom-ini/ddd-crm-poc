@@ -2,7 +2,8 @@ from typing import Self
 from faker import Faker
 from pydantic import Field
 
-from building_blocks.application.query_model import BaseReadModel, NestedReadModel
+from building_blocks.application.nested_model import NestedModel
+from building_blocks.application.query_model import BaseReadModel
 from customer_management.domain.entities.customer import Customer
 from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.industry import ALLOWED_INDUSTRY_NAMES
@@ -25,7 +26,7 @@ from customer_management.domain.value_objects.language import Language
 faker = Faker(locale="pl_PL")
 
 
-class CompanyAddressReadModel(BaseReadModel[Address], NestedReadModel):
+class CompanyAddressReadModel(BaseReadModel[Address], NestedModel):
     country: str = Field(examples=[faker.country()])
     street: str = Field(examples=[faker.street_name()])
     street_no: str = Field(examples=[faker.building_number()])
@@ -43,7 +44,7 @@ class CompanyAddressReadModel(BaseReadModel[Address], NestedReadModel):
         )
 
 
-class CompanyInfoReadModel(BaseReadModel[CompanyInfo], NestedReadModel):
+class CompanyInfoReadModel(BaseReadModel[CompanyInfo], NestedModel):
     name: str = Field(examples=[faker.company()])
     industry: str = Field(examples=ALLOWED_INDUSTRY_NAMES)
     size: str = Field(examples=ALLOWED_COMPANY_SIZES)
@@ -81,7 +82,7 @@ class CustomerReadModel(BaseReadModel[Customer]):
         )
 
 
-class ContactMethodReadModel(BaseReadModel[ContactMethod], NestedReadModel):
+class ContactMethodReadModel(BaseReadModel[ContactMethod], NestedModel):
     type: str = Field(examples=ALLOWED_CONTACT_TYPES)
     value: str = Field(examples=[faker.email(), faker.phone_number()])
     is_preferred: bool = Field(examples=[faker.boolean()])
@@ -93,7 +94,7 @@ class ContactMethodReadModel(BaseReadModel[ContactMethod], NestedReadModel):
         )
 
 
-class LanguageReadModel(BaseReadModel[Language], NestedReadModel):
+class LanguageReadModel(BaseReadModel[Language], NestedModel):
     name: str = Field(examples=["Polish"])
     code: str = Field(examples=["pl"])
 

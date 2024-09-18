@@ -20,10 +20,10 @@ class CustomerStatusName(str, Enum):
 class Customer(Protocol):
     contact_persons: ContactPersons
 
-    def _validate_contact_persons_by_status(
+    def _validate_contact_persons_called_by_status(
         self, contact_persons: ContactPersons
     ) -> None: ...
-    def _change_status(self, status: "CustomerStatus") -> Self: ...
+    def _change_status(self, status: "CustomerStatus") -> None: ...
 
 
 class CustomerStatus(ABC):
@@ -54,7 +54,9 @@ class InitialStatus(CustomerStatus):
     customer: Customer
 
     def convert(self) -> None:
-        self.customer._validate_contact_persons_by_status(self.customer.contact_persons)
+        self.customer._validate_contact_persons_called_by_status(
+            self.customer.contact_persons
+        )
         self.customer._change_status(ConvertedStatus(self.customer))
 
     def archive(self) -> None:

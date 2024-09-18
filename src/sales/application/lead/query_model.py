@@ -9,8 +9,28 @@ from building_blocks.application.query_model import BaseReadModel
 from sales.domain.entities.lead import Lead
 from sales.domain.value_objects.acquisition_source import ALLOWED_SOURCE_NAMES
 from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
+from building_blocks.application.nested_model import NestedModel
+from sales.domain.value_objects.contact_data import ContactData
 
 faker = Faker(locale="pl_PL")
+
+
+class ContactDataReadModel(BaseReadModel[ContactData], NestedModel):
+    first_name: str = Field(examples=[faker.first_name()])
+    last_name: str = Field(examples=[faker.last_name()])
+    company_name: str = Field(examples=[faker.company()])
+    phone: str | None = Field(default=None, examples=[faker.phone_number()])
+    email: str | None = Field(default=None, examples=[faker.email()])
+
+    @classmethod
+    def from_domain(cls, entity: ContactData) -> Self:
+        return cls(
+            first_name=entity.first_name,
+            last_name=entity.last_name,
+            company_name=entity.company_name,
+            phone=entity.phone,
+            email=entity.email,
+        )
 
 
 class LeadReadModel(BaseReadModel[Lead]):
@@ -20,11 +40,9 @@ class LeadReadModel(BaseReadModel[Lead]):
     assigned_salesman_id: str | None = Field(examples=[faker.uuid4()])
     created_at: dt.datetime
     source: str = Field(examples=ALLOWED_SOURCE_NAMES)
-    contact_first_name: str = Field(examples=[faker.first_name()])
-    contact_last_name: str = Field(examples=[faker.last_name()])
-    contact_company_name: str = Field(examples=[faker.company()])
-    contact_phone: str | None = Field(default=None, examples=[faker.phone_number()])
-    contact_email: str | None = Field(default=None, examples=[faker.email()])
+    contact_data: ContactDataReadModel = Field(
+        examples=[ContactDataReadModel.get_examples()]
+    )
 
     @classmethod
     def from_domain(cls: Self, entity: Lead) -> Self:
@@ -35,11 +53,7 @@ class LeadReadModel(BaseReadModel[Lead]):
             created_at=entity.created_at,
             assigned_salesman_id=entity.assigned_salesman_id,
             source=entity.source.name,
-            contact_first_name=entity.contact_data.first_name,
-            contact_last_name=entity.contact_data.last_name,
-            contact_company_name=entity.contact_data.company_name,
-            contact_phone=entity.contact_data.phone,
-            contact_email=entity.contact_data.email,
+            contact_data=ContactDataReadModel.from_domain(entity.contact_data),
         )
 
 

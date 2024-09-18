@@ -12,3 +12,17 @@ class ApplicationException(Exception):
 
 class InvalidFilterType(ApplicationException):
     message = "No filter function defined for given filter type"
+
+
+class UnauthorizedAction(ApplicationException):
+    pass
+
+
+class ObjectDoesNotExist(ApplicationException):
+    def __init__(self, id_: str) -> None:
+        message = f"Object with id={id_} does not exist"
+        super().__init__(message)
+
+
+class InvalidData(ApplicationException):
+    pass

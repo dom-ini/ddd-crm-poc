@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Self
 
 from attrs import define, field
@@ -6,18 +7,21 @@ from building_blocks.domain.validators import validate_no_duplicates
 from customer_management.domain.entities.customer.validators import (
     at_least_one_contact_person,
 )
-from customer_management.domain.exceptions import ContactPersonDoesNotExist
+from customer_management.domain.exceptions import (
+    ContactPersonDoesNotExist,
+    OnlyRelationManagerCanChangeStatus,
+)
 from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.entities.contact_person import (
     ContactPerson,
     ContactPersonReadOnly,
-    ContactMethods,
 )
 from customer_management.domain.value_objects.customer_status import (
     CustomerStatus,
     InitialStatus,
 )
 from customer_management.domain.value_objects.language import Language
+from customer_management.domain.entities.contact_person.validators import ContactMethod
 
 
 ContactPersons = tuple[ContactPerson, ...]
@@ -75,17 +79,20 @@ class Customer(AggregateRoot):
     def relation_manager_id(self) -> str:
         return self._relation_manager_id
 
-    def change_relation_manager(self, new_relation_manager_id: str) -> Self:
+    def change_relation_manager(self, new_relation_manager_id: str) -> None:
         self._relation_manager_id = new_relation_manager_id
-        return self
 
-    def convert(self) -> Self:
+    def convert(self, requestor_id: str) -> None:
+        self._check_status_change_permissions(requestor_id)
         self._status.convert()
-        return self
 
-    def archive(self) -> Self:
+    def archive(self, requestor_id: str) -> None:
+        self._check_status_change_permissions(requestor_id)
         self._status.archive()
-        return self
+
+    def get_contact_person(self, contact_person_id: str) -> ContactPerson:
+        _, contact_person = self._get_contact_person_by_id(contact_person_id)
+        return contact_person
 
     def add_contact_person(
         self,
@@ -94,8 +101,8 @@ class Customer(AggregateRoot):
         last_name: str,
         job_title: str,
         preferred_language: Language,
-        contact_methods: ContactMethods,
-    ) -> Self:
+        contact_methods: Iterable[ContactMethod],
+    ) -> None:
         contact_person = self._create_contact_person(
             contact_person_id=contact_person_id,
             first_name=first_name,
@@ -105,20 +112,94 @@ class Customer(AggregateRoot):
             contact_methods=contact_methods,
         )
         new_contact_persons = self._contact_persons + (contact_person,)
-        validate_no_duplicates(
-            new_contact_persons, callback=get_unique_contact_person_fields
-        )
-        self._contact_persons = new_contact_persons
-        return self
+        self._set_contact_persons_if_valid(new_contact_persons)
 
-    def remove_contact_person(self, id_to_remove: str) -> Self:
+    def update_contact_person(
+        self,
+        contact_person_id: str,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        job_title: str | None = None,
+        preferred_language: Language | None = None,
+        contact_methods: Iterable[ContactMethod] | None = None,
+    ) -> None:
+        index, contact_person = self._get_contact_person_by_id(contact_person_id)
+        new_contact_person = self._create_contact_person_with_default_values(
+            contact_person=contact_person,
+            first_name=first_name,
+            last_name=last_name,
+            job_title=job_title,
+            preferred_language=preferred_language,
+            contact_methods=contact_methods,
+        )
+        new_contact_persons = (
+            self._contact_persons[:index]
+            + (new_contact_person,)
+            + self._contact_persons[index + 1 :]
+        )
+        self._set_contact_persons_if_valid(new_contact_persons)
+
+    def remove_contact_person(self, id_to_remove: str) -> None:
         new_contact_persons = tuple(
             person for person in self._contact_persons if id_to_remove != person.id
         )
         if len(new_contact_persons) == len(self._contact_persons):
             raise ContactPersonDoesNotExist
         self._contact_persons = new_contact_persons
-        return self
+
+    def add_contact_method(self, contact_person_id: str, method: ContactMethod) -> None:
+        contact_person = self.get_contact_person(contact_person_id)
+        contact_person.add_contact_method(method)
+
+    def remove_contact_method(
+        self, contact_person_id: str, method: ContactMethod
+    ) -> None:
+        contact_person = self.get_contact_person(contact_person_id)
+        contact_person.remove_contact_method(method)
+
+    def _create_contact_person_with_default_values(
+        self,
+        contact_person: ContactPerson,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        job_title: str | None = None,
+        preferred_language: Language | None = None,
+        contact_methods: Iterable[ContactMethod] | None = None,
+    ) -> ContactPerson:
+        id_ = contact_person.id
+        new_first_name = first_name or contact_person.first_name
+        new_last_name = last_name or contact_person.last_name
+        new_job_title = job_title or contact_person.job_title
+        new_preferred_language = preferred_language or contact_person.preferred_language
+        new_contact_methods = contact_methods or contact_person.contact_methods
+        new_contact_person = self._create_contact_person(
+            contact_person_id=id_,
+            first_name=new_first_name,
+            last_name=new_last_name,
+            job_title=new_job_title,
+            preferred_language=new_preferred_language,
+            contact_methods=new_contact_methods,
+        )
+        return new_contact_person
+
+    def _set_contact_persons_if_valid(self, contact_persons: ContactPersons) -> None:
+        validate_no_duplicates(
+            contact_persons, callback=get_unique_contact_person_fields
+        )
+        self._contact_persons = contact_persons
+
+    def _get_contact_person_by_id(
+        self, contact_person_id: str
+    ) -> tuple[int, ContactPerson]:
+        persons_ids = (
+            (i, person)
+            for i, person in enumerate(self._contact_persons)
+            if person.id == contact_person_id
+        )
+        id_ = next(persons_ids, None)
+        if id_ is None:
+            raise ContactPersonDoesNotExist
+        return id_
 
     def _create_contact_person(
         self,
@@ -127,7 +208,7 @@ class Customer(AggregateRoot):
         last_name: str,
         job_title: str,
         preferred_language: Language,
-        contact_methods: ContactMethods,
+        contact_methods: Iterable[ContactMethod],
     ) -> ContactPerson:
         contact_person = ContactPerson(
             id=contact_person_id,
@@ -135,22 +216,21 @@ class Customer(AggregateRoot):
             last_name=last_name,
             job_title=job_title,
             preferred_language=preferred_language,
-            contact_methods=contact_methods,
+            contact_methods=tuple(contact_methods),
         )
         return contact_person
 
-    def _add_contact_persons(self, contact_persons: ContactPersons) -> None:
-        validate_no_duplicates(contact_persons, callback=lambda x: x.first_name)
-        self._contact_persons = self._contact_persons + contact_persons
-
-    def _validate_contact_persons_by_status(
+    def _validate_contact_persons_called_by_status(
         self, contact_persons: ContactPersons
     ) -> None:
         at_least_one_contact_person(contact_persons)
 
-    def _change_status(self, status: CustomerStatus) -> Self:
+    def _check_status_change_permissions(self, requestor_id: str) -> None:
+        if requestor_id != self.relation_manager_id:
+            raise OnlyRelationManagerCanChangeStatus
+
+    def _change_status(self, status: CustomerStatus) -> None:
         self._status = status
-        return self
 
     def __str__(self) -> str:
         return f"Customer: {self.company_info}"

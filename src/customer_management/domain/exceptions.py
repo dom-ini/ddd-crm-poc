@@ -23,3 +23,7 @@ class CustomerAlreadyArchived(DomainException):
 
 class ContactPersonDoesNotExist(DomainException):
     message = "Given contact person is not a contact person of this customer"
+
+
+class OnlyRelationManagerCanChangeStatus(DomainException):
+    message = "Only relation manager can change status"
