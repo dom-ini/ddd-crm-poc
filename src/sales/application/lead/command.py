@@ -42,7 +42,8 @@ class LeadCommandUseCase:
     def create(self, lead_data: LeadCreateModel, creator_id: str) -> LeadReadModel:
         # sprawdzać czy klient istnieje
         lead_id = str(uuid4())
-        source, contact_data = self._create_contact_data_and_source(lead_data)
+        source = self._create_source(lead_data.source)
+        contact_data = self._create_contact_data(lead_data.contact_data)
         lead = Lead.make(
             id=lead_id,
             customer_id=lead_data.customer_id,
