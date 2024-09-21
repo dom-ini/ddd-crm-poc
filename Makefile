@@ -8,8 +8,10 @@ flake8:
 	poetry run flake8 ./src
 isort:
 	poetry run isort ./src
+ruff:
+	poetry run ruff check ./src
 pylint:
 	poetry run pylint src --extension-pkg-whitelist='pydantic'
 black:
 	poetry run black ./src
-lint: black flake8 isort pylint toml_sort
+lint: black flake8 isort ruff pylint toml_sort
