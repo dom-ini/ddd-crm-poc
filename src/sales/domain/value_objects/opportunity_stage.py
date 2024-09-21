@@ -7,6 +7,7 @@ from building_blocks.domain.value_object import ValueObject
 OpportunityStageName = Literal[
     "qualification", "proposal", "negotiation", "closed-won", "closed-lost"
 ]
+INITIAL_STAGE = "qualification"
 ALLOWED_OPPORTUNITY_STAGES = get_args(OpportunityStageName)
 
 
