@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Protocol, Self, Tuple
+from typing import Protocol, Tuple
+
 from attrs import define, field
+
 from customer_management.domain.exceptions import (
     CannotConvertArchivedCustomer,
     CustomerAlreadyArchived,
@@ -20,9 +22,7 @@ class CustomerStatusName(str, Enum):
 class Customer(Protocol):
     contact_persons: ContactPersons
 
-    def _validate_contact_persons_called_by_status(
-        self, contact_persons: ContactPersons
-    ) -> None: ...
+    def _validate_contact_persons_called_by_status(self, contact_persons: ContactPersons) -> None: ...
     def _change_status(self, status: "CustomerStatus") -> None: ...
 
 
@@ -44,7 +44,7 @@ class CustomerStatus(ABC):
         pass
 
     def __str__(self) -> str:
-        status_name = self.__class__.__name__.lower().rstrip("status")
+        status_name = self.__class__.__name__.lower().removesuffix("status")
         return f"status={status_name}"
 
 
@@ -54,9 +54,7 @@ class InitialStatus(CustomerStatus):
     customer: Customer
 
     def convert(self) -> None:
-        self.customer._validate_contact_persons_called_by_status(
-            self.customer.contact_persons
-        )
+        self.customer._validate_contact_persons_called_by_status(self.customer.contact_persons)
         self.customer._change_status(ConvertedStatus(self.customer))
 
     def archive(self) -> None:

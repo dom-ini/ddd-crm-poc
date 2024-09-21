@@ -1,11 +1,9 @@
 from collections.abc import Iterable
-from building_blocks.application.filters import FilterCondition, FilterConditionType
-from customer_management.application.query_service import CustomerQueryService
-from customer_management.application.query_model import (
-    ContactPersonReadModel,
-    CustomerReadModel,
-)
+
 from building_blocks.application.exceptions import ObjectDoesNotExist
+from building_blocks.application.filters import FilterCondition, FilterConditionType
+from customer_management.application.query_model import ContactPersonReadModel, CustomerReadModel
+from customer_management.application.query_service import CustomerQueryService
 
 
 class CustomerQueryUseCase:

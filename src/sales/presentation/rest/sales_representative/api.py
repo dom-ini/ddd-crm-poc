@@ -1,26 +1,18 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Path, status
-from sales.infrastructure.file import config as file_config
 
-from sales.application.sales_representative.query_model import (
-    SalesRepresentativeReadModel,
-)
-from sales.application.sales_representative.query import SalesRepresentativeQueryUseCase
-from sales.infrastructure.file.sales_representative.query_service import (
-    SalesRepresentativeFileQueryService,
-)
-from sales.application.sales_representative.command import (
-    SalesRepresentativeCommandUseCase,
-)
+from fastapi import APIRouter, Depends, HTTPException, Path, status
+
 from building_blocks.application.exceptions import ObjectDoesNotExist
+from sales.application.sales_representative.command import SalesRepresentativeCommandUseCase
 from sales.application.sales_representative.command_model import (
     SalesRepresentativeCreateModel,
     SalesRepresentativeUpdateModel,
 )
-from sales.infrastructure.file.sales_representative.command import (
-    SalesRepresentativeFileUnitOfWork,
-)
-
+from sales.application.sales_representative.query import SalesRepresentativeQueryUseCase
+from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
+from sales.infrastructure.file import config as file_config
+from sales.infrastructure.file.sales_representative.command import SalesRepresentativeFileUnitOfWork
+from sales.infrastructure.file.sales_representative.query_service import SalesRepresentativeFileQueryService
 
 router = APIRouter(prefix="/sales-representatives", tags=["sales representatives"])
 
@@ -37,9 +29,7 @@ def get_sr_command_use_case() -> SalesRepresentativeCommandUseCase:
 
 @router.get("/", response_model=list[SalesRepresentativeReadModel])
 def get_sales_representatives(
-    sr_query_use_case: Annotated[
-        SalesRepresentativeQueryUseCase, Depends(get_sr_query_use_case)
-    ],
+    sr_query_use_case: Annotated[SalesRepresentativeQueryUseCase, Depends(get_sr_query_use_case)],
 ) -> None:
     representatives = sr_query_use_case.get_all()
     return representatives
@@ -47,9 +37,7 @@ def get_sales_representatives(
 
 @router.post("/", response_model=SalesRepresentativeReadModel)
 def create_sales_representative(
-    sr_command_use_case: Annotated[
-        SalesRepresentativeCommandUseCase, Depends(get_sr_command_use_case)
-    ],
+    sr_command_use_case: Annotated[SalesRepresentativeCommandUseCase, Depends(get_sr_command_use_case)],
     data: SalesRepresentativeCreateModel,
 ) -> None:
     representative = sr_command_use_case.create(data)
@@ -57,17 +45,13 @@ def create_sales_representative(
 
 
 @router.put("/", response_model=SalesRepresentativeReadModel)
-def create_sales_representative(
-    sr_command_use_case: Annotated[
-        SalesRepresentativeCommandUseCase, Depends(get_sr_command_use_case)
-    ],
+def update_sales_representative(
+    sr_command_use_case: Annotated[SalesRepresentativeCommandUseCase, Depends(get_sr_command_use_case)],
     representative_id: Annotated[str, Path],
     data: SalesRepresentativeUpdateModel,
 ) -> None:
     try:
-        representative = sr_command_use_case.update(
-            representative_id=representative_id, data=data
-        )
+        representative = sr_command_use_case.update(representative_id=representative_id, data=data)
     except ObjectDoesNotExist as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
     return representative

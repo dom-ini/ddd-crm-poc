@@ -1,13 +1,13 @@
 from collections.abc import Iterable
 from typing import Self
-from attrs import define, field, Attribute
+
+from attrs import Attribute, define, field
+
+from building_blocks.domain.entity import Entity, ReadOnlyEntity
 from building_blocks.domain.validators import validate_no_duplicates
-from customer_management.domain.entities.contact_person.validators import (
-    at_least_one_preferred_contact_method,
-)
+from customer_management.domain.entities.contact_person.validators import at_least_one_preferred_contact_method
 from customer_management.domain.value_objects.contact_method import ContactMethod
 from customer_management.domain.value_objects.language import Language
-from building_blocks.domain.entity import Entity, ReadOnlyEntity
 
 ContactMethods = Iterable[ContactMethod]
 
@@ -29,9 +29,7 @@ class ContactPerson(Entity):
         return self._contact_methods
 
     @_contact_methods.validator
-    def _validate_contact_methods(
-        self, _attribute: Attribute, value: ContactMethods
-    ) -> None:
+    def _validate_contact_methods(self, _attribute: Attribute, value: ContactMethods) -> None:
         validate_no_duplicates(value, get_unique_contact_method_fields)
         at_least_one_preferred_contact_method(value)
 
@@ -51,9 +49,7 @@ class ContactPerson(Entity):
 
     def remove_contact_method(self, method: ContactMethod) -> Self:
         new_contact_methods = tuple(
-            current_method
-            for current_method in self._contact_methods
-            if current_method != method
+            current_method for current_method in self._contact_methods if current_method != method
         )
         self._contact_methods = new_contact_methods
         return self

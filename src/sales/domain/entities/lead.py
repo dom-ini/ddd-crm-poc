@@ -1,19 +1,17 @@
-from typing import Self
 import datetime as dt
+from typing import Self
 
 from attrs import define, field
-from building_blocks.domain.utils.date import get_current_timestamp
+
 from building_blocks.domain.entity import AggregateRoot
+from building_blocks.domain.utils.date import get_current_timestamp
 from sales.domain.entities.lead_assignments import AssignmentHistory, LeadAssignments
 from sales.domain.entities.notes import Notes, NotesHistory
-from sales.domain.exceptions import (
-    UnauthorizedLeadOwnerChange,
-    OnlyOwnerCanEditNotes,
-)
-from sales.domain.value_objects.contact_data import ContactData
-from sales.domain.value_objects.note import Note
+from sales.domain.exceptions import OnlyOwnerCanEditNotes, UnauthorizedLeadOwnerChange
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
+from sales.domain.value_objects.contact_data import ContactData
 from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
+from sales.domain.value_objects.note import Note
 
 
 @define(eq=False, kw_only=True)
@@ -112,9 +110,7 @@ class Lead(AggregateRoot):
 
     def assign_salesman(self, new_salesman_id: str, requestor_id: str) -> Self:
         self._check_assignment_permissions(requestor_id)
-        self._assignments.change_assigned_salesman(
-            new_salesman_id=new_salesman_id, requestor_id=requestor_id
-        )
+        self._assignments.change_assigned_salesman(new_salesman_id=new_salesman_id, requestor_id=requestor_id)
         return self
 
     def change_note(self, new_content: str, editor_id: str) -> Self:

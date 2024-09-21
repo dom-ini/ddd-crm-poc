@@ -1,15 +1,14 @@
+import datetime as dt
 from decimal import Decimal
 from typing import Self
+
 from faker import Faker
 from pydantic import Field
-import datetime as dt
+
 from building_blocks.application.nested_model import NestedModel
 from building_blocks.application.query_model import BaseReadModel
 from sales.domain.entities.opportunity import Opportunity
-from sales.domain.value_objects import priority
-from sales.domain.value_objects.acquisition_source import (
-    ALLOWED_SOURCE_NAMES,
-)
+from sales.domain.value_objects.acquisition_source import ALLOWED_SOURCE_NAMES
 from sales.domain.value_objects.money.currency import Currency
 from sales.domain.value_objects.money.money import Money
 from sales.domain.value_objects.offer_item import OfferItem
@@ -39,9 +38,7 @@ class CurrencyReadModel(BaseReadModel[Currency], NestedModel):
 
 class MoneyReadModel(BaseReadModel[Money], NestedModel):
     currency: CurrencyReadModel = Field(examples=[CurrencyReadModel.get_examples()])
-    amount: Decimal = Field(
-        examples=[faker.pydecimal(left_digits=3, right_digits=2, positive=True)]
-    )
+    amount: Decimal = Field(examples=[faker.pydecimal(left_digits=3, right_digits=2, positive=True)])
 
     @classmethod
     def from_domain(cls, entity: Money) -> Self:

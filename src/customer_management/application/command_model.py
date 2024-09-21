@@ -1,15 +1,11 @@
 from faker import Faker
 from pydantic import Field
+
 from building_blocks.application.command_model import BaseCommandModel
 from building_blocks.application.nested_model import NestedModel
-from customer_management.domain.value_objects.company_segment import (
-    ALLOWED_COMPANY_SIZES,
-    ALLOWED_LEGAL_FORMS,
-)
+from customer_management.domain.value_objects.company_segment import ALLOWED_COMPANY_SIZES, ALLOWED_LEGAL_FORMS
+from customer_management.domain.value_objects.contact_method import ALLOWED_CONTACT_TYPES
 from customer_management.domain.value_objects.industry import ALLOWED_INDUSTRY_NAMES
-from customer_management.domain.value_objects.contact_method import (
-    ALLOWED_CONTACT_TYPES,
-)
 
 faker = Faker(locale="pl_PL")
 
@@ -20,9 +16,7 @@ class CountryCreateUpdateModel(BaseCommandModel, NestedModel):
 
 
 class AddressDataCreateUpdateModel(BaseCommandModel, NestedModel):
-    country: CountryCreateUpdateModel = Field(
-        examples=[CountryCreateUpdateModel.get_examples()]
-    )
+    country: CountryCreateUpdateModel = Field(examples=[CountryCreateUpdateModel.get_examples()])
     street: str = Field(examples=[faker.street_name()])
     street_no: str = Field(examples=[faker.building_number()])
     postal_code: str = Field(examples=[faker.postalcode()])
@@ -34,16 +28,12 @@ class CompanyInfoCreateUpdateModel(BaseCommandModel, NestedModel):
     industry: str = Field(examples=ALLOWED_INDUSTRY_NAMES)
     size: str = Field(examples=ALLOWED_COMPANY_SIZES)
     legal_form: str = Field(examples=ALLOWED_LEGAL_FORMS)
-    address: AddressDataCreateUpdateModel = Field(
-        examples=[AddressDataCreateUpdateModel.get_examples()]
-    )
+    address: AddressDataCreateUpdateModel = Field(examples=[AddressDataCreateUpdateModel.get_examples()])
 
 
 class CustomerCreateModel(BaseCommandModel):
     relation_manager_id: str = Field(examples=[faker.uuid4()])
-    company_info: CompanyInfoCreateUpdateModel = Field(
-        examples=[CompanyInfoCreateUpdateModel.get_examples()]
-    )
+    company_info: CompanyInfoCreateUpdateModel = Field(examples=[CompanyInfoCreateUpdateModel.get_examples()])
 
 
 class CustomerUpdateModel(BaseCommandModel):
@@ -68,9 +58,7 @@ class ContactPersonCreateModel(BaseCommandModel):
     first_name: str = Field(examples=[faker.first_name()])
     last_name: str = Field(examples=[faker.last_name()])
     job_title: str = Field(examples=[faker.job()])
-    preferred_language: LanguageCreateUpdateModel = Field(
-        examples=[LanguageCreateUpdateModel.get_examples()]
-    )
+    preferred_language: LanguageCreateUpdateModel = Field(examples=[LanguageCreateUpdateModel.get_examples()])
     contact_methods: list[ContactMethodCreateUpdateModel] = Field(
         examples=[[ContactMethodCreateUpdateModel.get_examples()]]
     )

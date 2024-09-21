@@ -1,11 +1,9 @@
 from collections.abc import Iterable
+
 from building_blocks.application.exceptions import ObjectDoesNotExist
 from building_blocks.application.filters import FilterCondition, FilterConditionType
 from sales.application.notes.query_model import NoteReadModel
-from sales.application.opportunity.query_model import (
-    OfferItemReadModel,
-    OpportunityReadModel,
-)
+from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
 from sales.application.opportunity.query_service import OpportunityQueryService
 
 

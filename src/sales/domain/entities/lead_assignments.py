@@ -1,5 +1,7 @@
 from collections.abc import Iterable
+
 from attrs import define, field
+
 from building_blocks.domain.entity import EntityWithoutId
 from building_blocks.domain.utils.date import get_current_timestamp
 from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry

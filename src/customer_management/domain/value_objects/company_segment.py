@@ -1,6 +1,7 @@
 from typing import Literal, get_args
 
 from attrs import define, field
+
 from building_blocks.domain.attrs_validators import attrs_value_in
 from building_blocks.domain.value_object import ValueObject
 

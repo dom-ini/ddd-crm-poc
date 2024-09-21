@@ -1,10 +1,8 @@
 from uuid import uuid4
 
-from building_blocks.domain.exceptions import (
-    InvalidEmailAddress,
-    InvalidPhoneNumber,
-    ValueNotAllowed,
-)
+from building_blocks.application.command import BaseUnitOfWork
+from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.domain.exceptions import InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from sales.application.lead.command_model import (
     AssignmentUpdateModel,
     ContactDataCreateUpdateModel,
@@ -12,23 +10,13 @@ from sales.application.lead.command_model import (
     LeadUpdateModel,
 )
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
+from sales.application.notes.command_model import NoteCreateModel
+from sales.application.notes.query_model import NoteReadModel
 from sales.domain.entities.lead import Lead
+from sales.domain.exceptions import EmailOrPhoneNumberShouldBeSet, OnlyOwnerCanEditNotes, UnauthorizedLeadOwnerChange
 from sales.domain.repositories.lead import LeadRepository
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.contact_data import ContactData
-from sales.domain.exceptions import (
-    EmailOrPhoneNumberShouldBeSet,
-    OnlyOwnerCanEditNotes,
-    UnauthorizedLeadOwnerChange,
-)
-from sales.application.notes.command_model import NoteCreateModel
-from sales.application.notes.query_model import NoteReadModel
-from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import (
-    InvalidData,
-    ObjectDoesNotExist,
-    UnauthorizedAction,
-)
 
 
 class LeadUnitOfWork(BaseUnitOfWork):
@@ -65,15 +53,13 @@ class LeadCommandUseCase:
             uow.repository.update(lead)
         return LeadReadModel.from_domain(lead)
 
-    def update_note(
-        self, lead_id: str, editor_id: str, note_data: NoteCreateModel
-    ) -> NoteReadModel:
+    def update_note(self, lead_id: str, editor_id: str, note_data: NoteCreateModel) -> NoteReadModel:
         with self.lead_uow as uow:
             lead = self._get_lead(uow=uow, lead_id=lead_id)
             try:
                 lead.change_note(new_content=note_data.content, editor_id=editor_id)
             except OnlyOwnerCanEditNotes as e:
-                raise UnauthorizedAction(e.message)
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(lead)
         return NoteReadModel.from_domain(lead.note)
 
@@ -88,7 +74,7 @@ class LeadCommandUseCase:
                     requestor_id=requestor_id,
                 )
             except UnauthorizedLeadOwnerChange as e:
-                raise UnauthorizedAction(e.message)
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(lead)
         return AssignmentReadModel.from_domain(lead.most_recent_assignment)
 
@@ -102,7 +88,7 @@ class LeadCommandUseCase:
         try:
             source = AcquisitionSource(name=source_name)
         except ValueNotAllowed as e:
-            raise InvalidData(e.message)
+            raise InvalidData(e.message) from e
         return source
 
     def _create_contact_data(self, data: ContactDataCreateUpdateModel) -> ContactData:
@@ -119,5 +105,5 @@ class LeadCommandUseCase:
             InvalidEmailAddress,
             EmailOrPhoneNumberShouldBeSet,
         ) as e:
-            raise InvalidData(e.message)
+            raise InvalidData(e.message) from e
         return contact_data

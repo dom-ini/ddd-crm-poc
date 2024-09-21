@@ -1,9 +1,8 @@
 import shelve
-from customer_management.domain.repositories.customer import CustomerRepository
+
+from building_blocks.infrastructure.exceptions import ObjectAlreadyExists
 from customer_management.domain.entities.customer import Customer
-from building_blocks.infrastructure.exceptions import (
-    ObjectAlreadyExists,
-)
+from customer_management.domain.repositories.customer import CustomerRepository
 
 
 class CustomerFileRepository(CustomerRepository):

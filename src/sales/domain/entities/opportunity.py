@@ -1,7 +1,8 @@
+import datetime as dt
 from collections.abc import Iterable
 from typing import Self
+
 from attrs import define, field
-import datetime as dt
 
 from building_blocks.domain.entity import AggregateRoot
 from building_blocks.domain.utils.date import get_current_timestamp

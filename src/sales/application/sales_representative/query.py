@@ -1,11 +1,8 @@
 from collections.abc import Iterable
-from sales.application.sales_representative.query_service import (
-    SalesRepresentativeQueryService,
-)
-from sales.application.sales_representative.query_model import (
-    SalesRepresentativeReadModel,
-)
+
 from building_blocks.application.exceptions import ObjectDoesNotExist
+from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
+from sales.application.sales_representative.query_service import SalesRepresentativeQueryService
 
 
 class SalesRepresentativeQueryUseCase:

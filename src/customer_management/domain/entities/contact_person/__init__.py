@@ -1,1 +1,1 @@
-from .contact_person import ContactPerson, ContactPersonReadOnly, ContactMethods
+from .contact_person import ContactMethods, ContactPerson, ContactPersonReadOnly

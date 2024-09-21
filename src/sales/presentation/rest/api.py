@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from sales.presentation.rest.lead.api import router as lead_router
 from sales.presentation.rest.opportunity.api import router as opportunity_router
 from sales.presentation.rest.sales_representative.api import router as sr_router

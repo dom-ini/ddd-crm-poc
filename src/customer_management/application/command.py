@@ -1,7 +1,9 @@
 from collections.abc import Iterable
 from uuid import uuid4
+
 from building_blocks.application.command import BaseUnitOfWork
-from customer_management.domain.repositories.customer import CustomerRepository
+from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.domain.exceptions import DuplicateEntry, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from customer_management.application.command_model import (
     AddressDataCreateUpdateModel,
     CompanyInfoCreateUpdateModel,
@@ -12,24 +14,8 @@ from customer_management.application.command_model import (
     CustomerUpdateModel,
     LanguageCreateUpdateModel,
 )
-from customer_management.application.query_model import (
-    ContactPersonReadModel,
-    CustomerReadModel,
-)
-from customer_management.domain.value_objects.company_info import CompanyInfo
-from customer_management.domain.value_objects.address import Address
+from customer_management.application.query_model import ContactPersonReadModel, CustomerReadModel
 from customer_management.domain.entities.customer.customer import Customer
-from customer_management.domain.value_objects.company_segment import CompanySegment
-from customer_management.domain.value_objects.industry import Industry
-from building_blocks.domain.exceptions import (
-    DuplicateEntry,
-    InvalidEmailAddress,
-    InvalidPhoneNumber,
-    ValueNotAllowed,
-)
-from customer_management.domain.value_objects.country import Country
-from customer_management.domain.value_objects.contact_method import ContactMethod
-from customer_management.domain.value_objects.language import Language
 from customer_management.domain.exceptions import (
     CannotConvertArchivedCustomer,
     ContactPersonDoesNotExist,
@@ -39,11 +25,14 @@ from customer_management.domain.exceptions import (
     NotEnoughPreferredContactMethods,
     OnlyRelationManagerCanChangeStatus,
 )
-from building_blocks.application.exceptions import (
-    InvalidData,
-    ObjectDoesNotExist,
-    UnauthorizedAction,
-)
+from customer_management.domain.repositories.customer import CustomerRepository
+from customer_management.domain.value_objects.address import Address
+from customer_management.domain.value_objects.company_info import CompanyInfo
+from customer_management.domain.value_objects.company_segment import CompanySegment
+from customer_management.domain.value_objects.contact_method import ContactMethod
+from customer_management.domain.value_objects.country import Country
+from customer_management.domain.value_objects.industry import Industry
+from customer_management.domain.value_objects.language import Language
 
 
 class CustomerUnitOfWork(BaseUnitOfWork):
@@ -66,17 +55,13 @@ class CustomerCommandUseCase:
             uow.repository.create(customer)
         return CustomerReadModel.from_domain(customer)
 
-    def update(
-        self, customer_id: str, customer_data: CustomerUpdateModel
-    ) -> CustomerReadModel:
+    def update(self, customer_id: str, customer_data: CustomerUpdateModel) -> CustomerReadModel:
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             if customer_data.relation_manager_id is not None:
                 customer.change_relation_manager(customer_data.relation_manager_id)
             if customer_data.company_info is not None:
-                customer.company_info = self._create_company_info(
-                    customer_data.company_info
-                )
+                customer.company_info = self._create_company_info(customer_data.company_info)
             uow.repository.update(customer)
         return CustomerReadModel.from_domain(customer)
 
@@ -90,9 +75,9 @@ class CustomerCommandUseCase:
                 CustomerAlreadyConverted,
                 CannotConvertArchivedCustomer,
             ) as e:
-                raise UnauthorizedAction(e.message)
+                raise UnauthorizedAction(e.message) from e
             except NotEnoughContactPersons as e:
-                raise InvalidData(e.message)
+                raise InvalidData(e.message) from e
             uow.repository.update(customer)
 
     def archive(self, customer_id: str, requestor_id: str) -> None:
@@ -104,12 +89,10 @@ class CustomerCommandUseCase:
                 OnlyRelationManagerCanChangeStatus,
                 CustomerAlreadyArchived,
             ) as e:
-                raise UnauthorizedAction(e.message)
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(customer)
 
-    def create_contact_person(
-        self, customer_id: str, data: ContactPersonCreateModel
-    ) -> ContactPersonReadModel:
+    def create_contact_person(self, customer_id: str, data: ContactPersonCreateModel) -> ContactPersonReadModel:
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             contact_person_id = str(uuid4())
@@ -125,7 +108,7 @@ class CustomerCommandUseCase:
                     contact_methods=contact_methods,
                 )
             except (NotEnoughPreferredContactMethods, DuplicateEntry) as e:
-                raise InvalidData(e.message)
+                raise InvalidData(e.message) from e
             uow.repository.update(customer)
         contact_person = customer.get_contact_person(contact_person_id)
         return ContactPersonReadModel.from_domain(contact_person)
@@ -136,16 +119,8 @@ class CustomerCommandUseCase:
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             try:
-                language = (
-                    self._create_preferred_language(data.preferred_language)
-                    if data.preferred_language
-                    else None
-                )
-                contact_methods = (
-                    self._create_contact_methods(data.contact_methods)
-                    if data.contact_methods
-                    else None
-                )
+                language = self._create_preferred_language(data.preferred_language) if data.preferred_language else None
+                contact_methods = self._create_contact_methods(data.contact_methods) if data.contact_methods else None
                 customer.update_contact_person(
                     contact_person_id=contact_person_id,
                     first_name=data.first_name,
@@ -154,10 +129,10 @@ class CustomerCommandUseCase:
                     preferred_language=language,
                     contact_methods=contact_methods,
                 )
-            except ContactPersonDoesNotExist:
-                raise ObjectDoesNotExist(contact_person_id)
+            except ContactPersonDoesNotExist as e:
+                raise ObjectDoesNotExist(contact_person_id) from e
             except (NotEnoughPreferredContactMethods, DuplicateEntry) as e:
-                raise InvalidData(e.message)
+                raise InvalidData(e.message) from e
             uow.repository.update(customer)
         contact_person = customer.get_contact_person(contact_person_id)
         return ContactPersonReadModel.from_domain(contact_person)
@@ -167,8 +142,8 @@ class CustomerCommandUseCase:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             try:
                 customer.remove_contact_person(contact_person_id)
-            except ContactPersonDoesNotExist:
-                raise ObjectDoesNotExist(customer_id)
+            except ContactPersonDoesNotExist as e:
+                raise ObjectDoesNotExist(customer_id) from e
             uow.repository.update(customer)
 
     def _get_customer(self, uow: CustomerUnitOfWork, customer_id: str) -> Customer:
@@ -181,9 +156,7 @@ class CustomerCommandUseCase:
         language = Language(code=data.code, name=data.name)
         return language
 
-    def _create_single_contact_method(
-        self, data: ContactMethodCreateUpdateModel
-    ) -> ContactMethod:
+    def _create_single_contact_method(self, data: ContactMethodCreateUpdateModel) -> ContactMethod:
         try:
             contact_method = ContactMethod(
                 type=data.type,
@@ -191,26 +164,18 @@ class CustomerCommandUseCase:
                 is_preferred=data.is_preferred,
             )
         except (InvalidPhoneNumber, InvalidEmailAddress) as e:
-            raise InvalidData(e.message)
+            raise InvalidData(e.message) from e
         return contact_method
 
-    def _create_contact_methods(
-        self, data: Iterable[ContactMethodCreateUpdateModel]
-    ) -> Iterable[ContactMethod]:
-        contact_methods = tuple(
-            self._create_single_contact_method(method) for method in data
-        )
+    def _create_contact_methods(self, data: Iterable[ContactMethodCreateUpdateModel]) -> Iterable[ContactMethod]:
+        contact_methods = tuple(self._create_single_contact_method(method) for method in data)
         return contact_methods
 
-    def _create_company_info(
-        self, company_data: CompanyInfoCreateUpdateModel
-    ) -> CompanyInfo:
+    def _create_company_info(self, company_data: CompanyInfoCreateUpdateModel) -> CompanyInfo:
         address = self._create_address(company_data.address)
         try:
             industry = Industry(name=company_data.industry)
-            segment = CompanySegment(
-                size=company_data.size, legal_form=company_data.legal_form
-            )
+            segment = CompanySegment(size=company_data.size, legal_form=company_data.legal_form)
             company_info = CompanyInfo(
                 name=company_data.name,
                 industry=industry,
@@ -218,13 +183,11 @@ class CustomerCommandUseCase:
                 address=address,
             )
         except ValueNotAllowed as e:
-            raise InvalidData(e.message)
+            raise InvalidData(e.message) from e
         return company_info
 
     def _create_address(self, address_data: AddressDataCreateUpdateModel) -> Address:
-        country = Country(
-            code=address_data.country.code, name=address_data.country.name
-        )
+        country = Country(code=address_data.country.code, name=address_data.country.name)
         address = Address(
             country=country,
             street=address_data.street,

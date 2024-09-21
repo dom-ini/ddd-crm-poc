@@ -1,5 +1,7 @@
 from typing import Self
+
 from attrs import define
+
 from building_blocks.domain.entity import AggregateRoot
 
 

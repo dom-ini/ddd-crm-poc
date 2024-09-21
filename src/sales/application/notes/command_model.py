@@ -1,5 +1,6 @@
 from faker import Faker
 from pydantic import Field
+
 from building_blocks.application.command_model import BaseCommandModel
 
 faker = Faker(locale="pl_PL")

@@ -1,5 +1,5 @@
-from typing import Self
 import datetime as dt
+from typing import Self
 
 from faker import Faker
 from pydantic import Field

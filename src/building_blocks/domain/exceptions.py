@@ -30,9 +30,7 @@ class InvalidEmailAddress(InvalidInput):
 
 class ValueNotAllowed(DomainException):
     def __init__(self, value: Any, allowed_values: Iterable[Any]) -> None:
-        self.message = (
-            f'Invalid value: "{value}", should be one of these: {allowed_values}'
-        )
+        self.message = f'Invalid value: "{value}", should be one of these: {allowed_values}'
         super().__init__()
 
 

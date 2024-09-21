@@ -4,13 +4,12 @@ from typing import Self
 from faker import Faker
 from pydantic import Field
 
-
+from building_blocks.application.nested_model import NestedModel
 from building_blocks.application.query_model import BaseReadModel
 from sales.domain.entities.lead import Lead
 from sales.domain.value_objects.acquisition_source import ALLOWED_SOURCE_NAMES
-from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
-from building_blocks.application.nested_model import NestedModel
 from sales.domain.value_objects.contact_data import ContactData
+from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
 
 faker = Faker(locale="pl_PL")
 
@@ -40,9 +39,7 @@ class LeadReadModel(BaseReadModel[Lead]):
     assigned_salesman_id: str | None = Field(examples=[faker.uuid4()])
     created_at: dt.datetime
     source: str = Field(examples=ALLOWED_SOURCE_NAMES)
-    contact_data: ContactDataReadModel = Field(
-        examples=[ContactDataReadModel.get_examples()]
-    )
+    contact_data: ContactDataReadModel = Field(examples=[ContactDataReadModel.get_examples()])
 
     @classmethod
     def from_domain(cls: Self, entity: Lead) -> Self:

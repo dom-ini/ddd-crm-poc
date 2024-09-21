@@ -1,4 +1,5 @@
 import shelve
+
 from building_blocks.infrastructure.exceptions import ObjectAlreadyExists
 from sales.domain.entities.opportunity import Opportunity
 from sales.domain.repositories.opportunity import OpportunityRepository
@@ -14,9 +15,7 @@ class OpportunityFileRepository(OpportunityRepository):
 
     def create(self, opportunity: Opportunity) -> None:
         if opportunity.id in self.db:
-            raise ObjectAlreadyExists(
-                f"Opportunity with id={opportunity.id} already exists"
-            )
+            raise ObjectAlreadyExists(f"Opportunity with id={opportunity.id} already exists")
         self.db[opportunity.id] = opportunity
 
     def update(self, opportunity: Opportunity) -> None:

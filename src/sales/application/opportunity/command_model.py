@@ -1,6 +1,8 @@
 from decimal import Decimal
+
 from faker import Faker
 from pydantic import Field
+
 from building_blocks.application.command_model import BaseCommandModel
 from building_blocks.application.nested_model import NestedModel
 from sales.domain.value_objects.acquisition_source import ALLOWED_SOURCE_NAMES
@@ -20,30 +22,20 @@ class CurrencyCreateUpdateModel(BaseCommandModel, NestedModel):
 
 
 class MoneyCreateUpdateModel(BaseCommandModel, NestedModel):
-    currency: CurrencyCreateUpdateModel = Field(
-        examples=[CurrencyCreateUpdateModel.get_examples()]
-    )
-    amount: Decimal = Field(
-        examples=[faker.pydecimal(left_digits=3, right_digits=2, positive=True)]
-    )
+    currency: CurrencyCreateUpdateModel = Field(examples=[CurrencyCreateUpdateModel.get_examples()])
+    amount: Decimal = Field(examples=[faker.pydecimal(left_digits=3, right_digits=2, positive=True)])
 
 
 class OfferItemCreateUpdateModel(BaseCommandModel, NestedModel):
-    product: ProductCreateUpdateModel = Field(
-        examples=[ProductCreateUpdateModel.get_examples()]
-    )
-    value: MoneyCreateUpdateModel = Field(
-        examples=[MoneyCreateUpdateModel.get_examples()]
-    )
+    product: ProductCreateUpdateModel = Field(examples=[ProductCreateUpdateModel.get_examples()])
+    value: MoneyCreateUpdateModel = Field(examples=[MoneyCreateUpdateModel.get_examples()])
 
 
 class OpportunityCreateModel(BaseCommandModel):
     customer_id: str = Field(examples=[faker.uuid4()])
     source: str = Field(examples=ALLOWED_SOURCE_NAMES)
     priority: str = Field(examples=ALLOWED_PRIORITY_LEVELS)
-    offer: list[OfferItemCreateUpdateModel] = Field(
-        examples=[[OfferItemCreateUpdateModel.get_examples()]]
-    )
+    offer: list[OfferItemCreateUpdateModel] = Field(examples=[[OfferItemCreateUpdateModel.get_examples()]])
 
 
 class OpportunityUpdateModel(BaseCommandModel):

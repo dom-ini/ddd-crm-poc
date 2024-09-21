@@ -1,9 +1,6 @@
 from abc import ABC, abstractmethod
 
 from customer_management.domain.entities.customer import Customer
-from customer_management.domain.entities.contact_person.contact_person import (
-    ContactPerson,
-)
 
 
 class CustomerRepository(ABC):

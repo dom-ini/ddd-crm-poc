@@ -1,13 +1,13 @@
 from collections.abc import Iterator
 from typing import Iterable
+
 from building_blocks.application.filters import FilterCondition
-from building_blocks.infrastructure.file.io import get_read_db
-from customer_management.application.query_service import CustomerQueryService
-from customer_management.infrastructure.file import config
-from customer_management.application.query_model import CustomerReadModel
-from customer_management.domain.entities.customer.customer import Customer
-from customer_management.application.query_model import ContactPersonReadModel
 from building_blocks.infrastructure.file.filters import FileFilterService
+from building_blocks.infrastructure.file.io import get_read_db
+from customer_management.application.query_model import ContactPersonReadModel, CustomerReadModel
+from customer_management.application.query_service import CustomerQueryService
+from customer_management.domain.entities.customer.customer import Customer
+from customer_management.infrastructure.file import config
 
 
 class CustomerFileQueryService(CustomerQueryService):
@@ -37,9 +37,7 @@ class CustomerFileQueryService(CustomerQueryService):
             customers = [CustomerReadModel.from_domain(db.get(id)) for id in all_ids]
         return tuple(customers)
 
-    def get_filtered(
-        self, filters: Iterable[FilterCondition]
-    ) -> Iterable[CustomerReadModel]:
+    def get_filtered(self, filters: Iterable[FilterCondition]) -> Iterable[CustomerReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             customers: Iterator[Customer] = (db.get(id) for id in all_ids)
@@ -50,14 +48,9 @@ class CustomerFileQueryService(CustomerQueryService):
             ]
         return tuple(filtered_customers)
 
-    def get_contact_persons(
-        self, customer_id: str
-    ) -> Iterable[ContactPersonReadModel] | None:
+    def get_contact_persons(self, customer_id: str) -> Iterable[ContactPersonReadModel] | None:
         customer = self._get_single_customer(customer_id)
         if customer is None:
             return None
-        contact_persons = (
-            ContactPersonReadModel.from_domain(person)
-            for person in customer.contact_persons
-        )
+        contact_persons = (ContactPersonReadModel.from_domain(person) for person in customer.contact_persons)
         return tuple(contact_persons)

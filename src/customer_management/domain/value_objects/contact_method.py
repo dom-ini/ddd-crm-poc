@@ -1,14 +1,10 @@
 from typing import Callable, Literal, get_args
 
-from attrs import define, field, Attribute
+from attrs import Attribute, define, field
 
 from building_blocks.domain.attrs_validators import attrs_value_in
-from building_blocks.domain.validators import (
-    validate_email,
-    validate_phone,
-)
+from building_blocks.domain.validators import validate_email, validate_phone
 from building_blocks.domain.value_object import ValueObject
-
 
 ContactMethodType = Literal["email", "phone"]
 ValidatorType = Callable[[str], None]

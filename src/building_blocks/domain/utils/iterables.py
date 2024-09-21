@@ -1,12 +1,10 @@
 from typing import Any, Callable, Iterable, TypeVar
 
-ItemType = TypeVar("Item")
-ItemCallback = Callable[[ItemType], Any]
+ItemT = TypeVar("ItemT")
+ItemCallback = Callable[[ItemT], Any]
 
 
-def get_duplicates(
-    values: Iterable[ItemType], value_callback: ItemCallback = lambda x: x
-) -> Iterable[ItemType]:
+def get_duplicates(values: Iterable[ItemT], value_callback: ItemCallback = lambda x: x) -> Iterable[ItemT]:
     seen = set()
     duplicates = set()
     for item in values:

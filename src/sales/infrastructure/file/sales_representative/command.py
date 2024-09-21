@@ -1,11 +1,7 @@
 from building_blocks.infrastructure.file.command import BaseFileUnitOfWork
 from sales.application.sales_representative.command import SalesRepresentativeUnitOfWork
-from sales.infrastructure.file.sales_representative.repository import (
-    SalesRepresentativeFileRepository,
-)
+from sales.infrastructure.file.sales_representative.repository import SalesRepresentativeFileRepository
 
 
-class SalesRepresentativeFileUnitOfWork(
-    BaseFileUnitOfWork, SalesRepresentativeUnitOfWork
-):
+class SalesRepresentativeFileUnitOfWork(BaseFileUnitOfWork, SalesRepresentativeUnitOfWork):
     Repository = SalesRepresentativeFileRepository

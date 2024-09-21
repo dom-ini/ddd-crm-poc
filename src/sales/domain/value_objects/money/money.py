@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from attr import Attribute
 from attrs import define, field
+
 from building_blocks.domain.value_object import ValueObject
 from sales.domain.exceptions import AmountMustBeGreaterThanZero
 from sales.domain.value_objects.money.currency import Currency

@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from typing import Protocol
+
 from customer_management.domain.exceptions import NotEnoughPreferredContactMethods
 
 

@@ -1,4 +1,5 @@
 from typing import Iterable
+
 from customer_management.domain.exceptions import NotEnoughContactPersons
 
 

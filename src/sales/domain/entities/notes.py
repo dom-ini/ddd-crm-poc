@@ -1,9 +1,10 @@
 from collections.abc import Iterable
+
 from attrs import define, field
+
 from building_blocks.domain.entity import EntityWithoutId
 from building_blocks.domain.utils.date import get_current_timestamp
 from sales.domain.value_objects.note import Note
-
 
 NotesHistory = Iterable[Note]
 
@@ -27,9 +28,7 @@ class Notes(EntityWithoutId):
         self._history = self._history + (note,)
 
     def _create_note(self, content: str, editor_id: str) -> Note:
-        return Note(
-            content=content, created_by_id=editor_id, created_at=get_current_timestamp()
-        )
+        return Note(content=content, created_by_id=editor_id, created_at=get_current_timestamp())
 
     def __str__(self) -> str:
         return f'Notes, most recent: "{self.most_recent}"'

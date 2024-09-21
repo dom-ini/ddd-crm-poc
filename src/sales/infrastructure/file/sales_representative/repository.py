@@ -1,9 +1,8 @@
 import shelve
-from sales.domain.repositories.sales_representative import SalesRepresentativeRepository
+
+from building_blocks.infrastructure.exceptions import ObjectAlreadyExists
 from sales.domain.entities.sales_representative import SalesRepresentative
-from building_blocks.infrastructure.exceptions import (
-    ObjectAlreadyExists,
-)
+from sales.domain.repositories.sales_representative import SalesRepresentativeRepository
 
 
 class SalesRepresentativeFileRepository(SalesRepresentativeRepository):
@@ -16,9 +15,7 @@ class SalesRepresentativeFileRepository(SalesRepresentativeRepository):
 
     def create(self, representative: SalesRepresentative) -> None:
         if representative.id in self.db:
-            raise ObjectAlreadyExists(
-                f"SalesRepresentative with id={representative.id} already exists"
-            )
+            raise ObjectAlreadyExists(f"SalesRepresentative with id={representative.id} already exists")
         self.db[representative.id] = representative
 
     def update(self, representative: SalesRepresentative) -> None:

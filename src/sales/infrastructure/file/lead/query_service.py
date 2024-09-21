@@ -1,11 +1,12 @@
 from collections.abc import Iterable, Iterator
+
 from building_blocks.application.filters import FilterCondition
-from building_blocks.infrastructure.file.io import get_read_db
 from building_blocks.infrastructure.file.filters import FileFilterService
-from sales.domain.entities.lead import Lead
+from building_blocks.infrastructure.file.io import get_read_db
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.lead.query_service import LeadQueryService
 from sales.application.notes.query_model import NoteReadModel
+from sales.domain.entities.lead import Lead
 from sales.infrastructure.file import config
 
 
@@ -36,9 +37,7 @@ class LeadFileQueryService(LeadQueryService):
             leads = [LeadReadModel.from_domain(db.get(id)) for id in all_ids]
         return tuple(leads)
 
-    def get_filtered(
-        self, filters: Iterable[FilterCondition]
-    ) -> Iterable[LeadReadModel]:
+    def get_filtered(self, filters: Iterable[FilterCondition]) -> Iterable[LeadReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             leads: Iterator[Lead] = (db.get(id) for id in all_ids)
@@ -49,16 +48,11 @@ class LeadFileQueryService(LeadQueryService):
             ]
         return tuple(filtered_leads)
 
-    def get_assignment_history(
-        self, lead_id: str
-    ) -> Iterable[AssignmentReadModel] | None:
+    def get_assignment_history(self, lead_id: str) -> Iterable[AssignmentReadModel] | None:
         lead = self._get_single_lead(lead_id)
         if lead is None:
             return None
-        assignments = (
-            AssignmentReadModel.from_domain(assignment)
-            for assignment in lead.assignment_history
-        )
+        assignments = (AssignmentReadModel.from_domain(assignment) for assignment in lead.assignment_history)
         return tuple(assignments)
 
     def get_notes(self, lead_id: str) -> Iterable[NoteReadModel] | None:

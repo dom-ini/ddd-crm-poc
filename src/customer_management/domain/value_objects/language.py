@@ -1,4 +1,5 @@
 from attrs import define
+
 from building_blocks.domain.value_object import ValueObject
 
 

@@ -1,27 +1,19 @@
 from typing import Self
+
 from faker import Faker
 from pydantic import Field
 
 from building_blocks.application.nested_model import NestedModel
 from building_blocks.application.query_model import BaseReadModel
+from customer_management.domain.entities.contact_person.contact_person import ContactPerson
 from customer_management.domain.entities.customer import Customer
-from customer_management.domain.value_objects.company_info import CompanyInfo
-from customer_management.domain.value_objects.industry import ALLOWED_INDUSTRY_NAMES
-from customer_management.domain.value_objects.company_segment import (
-    ALLOWED_COMPANY_SIZES,
-    ALLOWED_LEGAL_FORMS,
-)
 from customer_management.domain.value_objects.address import Address
+from customer_management.domain.value_objects.company_info import CompanyInfo
+from customer_management.domain.value_objects.company_segment import ALLOWED_COMPANY_SIZES, ALLOWED_LEGAL_FORMS
+from customer_management.domain.value_objects.contact_method import ALLOWED_CONTACT_TYPES, ContactMethod
 from customer_management.domain.value_objects.customer_status import CustomerStatusName
-from customer_management.domain.entities.contact_person.contact_person import (
-    ContactPerson,
-)
-from customer_management.domain.value_objects.contact_method import (
-    ALLOWED_CONTACT_TYPES,
-    ContactMethod,
-)
+from customer_management.domain.value_objects.industry import ALLOWED_INDUSTRY_NAMES
 from customer_management.domain.value_objects.language import Language
-
 
 faker = Faker(locale="pl_PL")
 
@@ -49,9 +41,7 @@ class CompanyInfoReadModel(BaseReadModel[CompanyInfo], NestedModel):
     industry: str = Field(examples=ALLOWED_INDUSTRY_NAMES)
     size: str = Field(examples=ALLOWED_COMPANY_SIZES)
     legal_form: str = Field(examples=ALLOWED_LEGAL_FORMS)
-    address: CompanyAddressReadModel = Field(
-        examples=[CompanyAddressReadModel.get_examples()]
-    )
+    address: CompanyAddressReadModel = Field(examples=[CompanyAddressReadModel.get_examples()])
 
     @classmethod
     def from_domain(cls, entity: CompanyInfo) -> Self:
@@ -68,9 +58,7 @@ class CustomerReadModel(BaseReadModel[Customer]):
     id: str = Field(examples=[faker.uuid4()])
     relation_manager_id: str = Field(examples=[faker.uuid4()])
     status: str = Field(examples=[status.value for status in CustomerStatusName])
-    company_info: CompanyInfoReadModel = Field(
-        examples=[CompanyInfoReadModel.get_examples()]
-    )
+    company_info: CompanyInfoReadModel = Field(examples=[CompanyInfoReadModel.get_examples()])
 
     @classmethod
     def from_domain(cls, entity: Customer) -> Self:
@@ -89,9 +77,7 @@ class ContactMethodReadModel(BaseReadModel[ContactMethod], NestedModel):
 
     @classmethod
     def from_domain(cls, entity: ContactMethod) -> Self:
-        return cls(
-            type=entity.type, value=entity.value, is_preferred=entity.is_preferred
-        )
+        return cls(type=entity.type, value=entity.value, is_preferred=entity.is_preferred)
 
 
 class LanguageReadModel(BaseReadModel[Language], NestedModel):
@@ -108,12 +94,8 @@ class ContactPersonReadModel(BaseReadModel[ContactPerson]):
     first_name: str = Field(examples=[faker.first_name()])
     last_name: str = Field(examples=[faker.last_name()])
     job_title: str = Field(examples=[faker.job()])
-    preferred_language: LanguageReadModel = Field(
-        examples=[LanguageReadModel.get_examples()]
-    )
-    contact_methods: list[ContactMethodReadModel] = Field(
-        examples=[[ContactMethodReadModel.get_examples()]]
-    )
+    preferred_language: LanguageReadModel = Field(examples=[LanguageReadModel.get_examples()])
+    contact_methods: list[ContactMethodReadModel] = Field(examples=[[ContactMethodReadModel.get_examples()]])
 
     @classmethod
     def from_domain(cls, entity: ContactPerson) -> Self:
@@ -123,8 +105,5 @@ class ContactPersonReadModel(BaseReadModel[ContactPerson]):
             last_name=entity.last_name,
             job_title=entity.job_title,
             preferred_language=LanguageReadModel.from_domain(entity.preferred_language),
-            contact_methods=[
-                ContactMethodReadModel.from_domain(method)
-                for method in entity.contact_methods
-            ],
+            contact_methods=[ContactMethodReadModel.from_domain(method) for method in entity.contact_methods],
         )

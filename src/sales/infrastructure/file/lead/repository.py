@@ -1,9 +1,8 @@
 import shelve
-from sales.domain.repositories.lead import LeadRepository
+
+from building_blocks.infrastructure.exceptions import ObjectAlreadyExists
 from sales.domain.entities.lead import Lead
-from building_blocks.infrastructure.exceptions import (
-    ObjectAlreadyExists,
-)
+from sales.domain.repositories.lead import LeadRepository
 
 
 class LeadFileRepository(LeadRepository):

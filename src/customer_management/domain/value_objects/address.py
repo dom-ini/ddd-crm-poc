@@ -1,6 +1,7 @@
 from attrs import define
-from customer_management.domain.value_objects.country import Country
+
 from building_blocks.domain.value_object import ValueObject
+from customer_management.domain.value_objects.country import Country
 
 
 @define(frozen=True, kw_only=True)

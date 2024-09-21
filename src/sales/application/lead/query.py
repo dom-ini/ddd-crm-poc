@@ -1,9 +1,10 @@
 from collections.abc import Iterable
+
+from building_blocks.application.exceptions import ObjectDoesNotExist
+from building_blocks.application.filters import FilterCondition, FilterConditionType
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.lead.query_service import LeadQueryService
 from sales.application.notes.query_model import NoteReadModel
-from building_blocks.application.filters import FilterCondition, FilterConditionType
-from building_blocks.application.exceptions import ObjectDoesNotExist
 
 
 class LeadQueryUseCase:

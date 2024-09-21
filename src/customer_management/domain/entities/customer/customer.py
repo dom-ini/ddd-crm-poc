@@ -2,27 +2,16 @@ from collections.abc import Iterable
 from typing import Self
 
 from attrs import define, field
+
 from building_blocks.domain.entity import AggregateRoot
 from building_blocks.domain.validators import validate_no_duplicates
-from customer_management.domain.entities.customer.validators import (
-    at_least_one_contact_person,
-)
-from customer_management.domain.exceptions import (
-    ContactPersonDoesNotExist,
-    OnlyRelationManagerCanChangeStatus,
-)
-from customer_management.domain.value_objects.company_info import CompanyInfo
-from customer_management.domain.entities.contact_person import (
-    ContactPerson,
-    ContactPersonReadOnly,
-)
-from customer_management.domain.value_objects.customer_status import (
-    CustomerStatus,
-    InitialStatus,
-)
-from customer_management.domain.value_objects.language import Language
+from customer_management.domain.entities.contact_person import ContactPerson, ContactPersonReadOnly
 from customer_management.domain.entities.contact_person.validators import ContactMethod
-
+from customer_management.domain.entities.customer.validators import at_least_one_contact_person
+from customer_management.domain.exceptions import ContactPersonDoesNotExist, OnlyRelationManagerCanChangeStatus
+from customer_management.domain.value_objects.company_info import CompanyInfo
+from customer_management.domain.value_objects.customer_status import CustomerStatus, InitialStatus
+from customer_management.domain.value_objects.language import Language
 
 ContactPersons = Iterable[ContactPerson]
 ContactPersonsReadOnly = Iterable[ContactPersonReadOnly]
@@ -53,9 +42,7 @@ class Customer(AggregateRoot):
         status: CustomerStatus,
         contact_persons: ContactPersons,
     ) -> Self:
-        customer = cls(
-            id=id, relation_manager_id=relation_manager_id, company_info=company_info
-        )
+        customer = cls(id=id, relation_manager_id=relation_manager_id, company_info=company_info)
         customer._status = status
         customer._contact_persons = contact_persons
         return customer
@@ -66,9 +53,7 @@ class Customer(AggregateRoot):
 
     @property
     def contact_persons(self) -> ContactPersonsReadOnly:
-        read_only_contact_persons = tuple(
-            person.to_read_only() for person in self._contact_persons
-        )
+        read_only_contact_persons = tuple(person.to_read_only() for person in self._contact_persons)
         return read_only_contact_persons
 
     @property
@@ -132,17 +117,11 @@ class Customer(AggregateRoot):
             preferred_language=preferred_language,
             contact_methods=contact_methods,
         )
-        new_contact_persons = (
-            self._contact_persons[:index]
-            + (new_contact_person,)
-            + self._contact_persons[index + 1 :]
-        )
+        new_contact_persons = self._contact_persons[:index] + (new_contact_person,) + self._contact_persons[index + 1 :]
         self._set_contact_persons_if_valid(new_contact_persons)
 
     def remove_contact_person(self, id_to_remove: str) -> None:
-        new_contact_persons = tuple(
-            person for person in self._contact_persons if id_to_remove != person.id
-        )
+        new_contact_persons = tuple(person for person in self._contact_persons if id_to_remove != person.id)
         if len(new_contact_persons) == len(self._contact_persons):
             raise ContactPersonDoesNotExist
         self._contact_persons = new_contact_persons
@@ -151,9 +130,7 @@ class Customer(AggregateRoot):
         contact_person = self.get_contact_person(contact_person_id)
         contact_person.add_contact_method(method)
 
-    def remove_contact_method(
-        self, contact_person_id: str, method: ContactMethod
-    ) -> None:
+    def remove_contact_method(self, contact_person_id: str, method: ContactMethod) -> None:
         contact_person = self.get_contact_person(contact_person_id)
         contact_person.remove_contact_method(method)
 
@@ -183,19 +160,11 @@ class Customer(AggregateRoot):
         return new_contact_person
 
     def _set_contact_persons_if_valid(self, contact_persons: ContactPersons) -> None:
-        validate_no_duplicates(
-            contact_persons, callback=get_unique_contact_person_fields
-        )
+        validate_no_duplicates(contact_persons, callback=get_unique_contact_person_fields)
         self._contact_persons = contact_persons
 
-    def _get_contact_person_by_id(
-        self, contact_person_id: str
-    ) -> tuple[int, ContactPerson]:
-        persons_ids = (
-            (i, person)
-            for i, person in enumerate(self._contact_persons)
-            if person.id == contact_person_id
-        )
+    def _get_contact_person_by_id(self, contact_person_id: str) -> tuple[int, ContactPerson]:
+        persons_ids = ((i, person) for i, person in enumerate(self._contact_persons) if person.id == contact_person_id)
         id_, contact_person = next(persons_ids, (None, None))
         if id_ is None:
             raise ContactPersonDoesNotExist
@@ -220,9 +189,7 @@ class Customer(AggregateRoot):
         )
         return contact_person
 
-    def _validate_contact_persons_called_by_status(
-        self, contact_persons: ContactPersons
-    ) -> None:
+    def _validate_contact_persons_called_by_status(self, contact_persons: ContactPersons) -> None:
         at_least_one_contact_person(contact_persons)
 
     def _check_status_change_permissions(self, requestor_id: str) -> None:

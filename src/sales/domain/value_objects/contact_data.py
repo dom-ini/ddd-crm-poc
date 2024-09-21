@@ -1,4 +1,5 @@
-from attrs import define, field, Attribute
+from attrs import Attribute, define, field
+
 from building_blocks.domain.validators import validate_email, validate_phone
 from building_blocks.domain.value_object import ValueObject
 from sales.domain.exceptions import EmailOrPhoneNumberShouldBeSet

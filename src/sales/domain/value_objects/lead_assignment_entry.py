@@ -1,6 +1,7 @@
 import datetime as dt
-from attrs import define, field
-from building_blocks.domain.utils.date import get_current_timestamp
+
+from attrs import define
+
 from building_blocks.domain.value_object import ValueObject
 
 
