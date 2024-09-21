@@ -1,3 +1,34 @@
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+
+[tool.isort]
+combine_as_imports = "true"
+include_trailing_comma = "true"
+known_first_party = ["src"]
+line_length = 120
+multi_line_output = 3
+
+[tool.pylint.BASIC]
+good-names = "id,i,j,k,db,r"
+
+[tool.pylint.DESIGN]
+max-args = 5
+max-attributes = 8
+min-public-methods = 1
+
+[tool.pylint.FORMAT]
+max-line-length = 120
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = "missing-docstring, logging-fstring-interpolation, too-few-public-methods"
+
+[tool.pylint.SIMILARITIES]
+ignore-comments = "yes"
+ignore-docstrings = "yes"
+ignore-imports = "yes"
+min-similarity-lines = 6
+
 [tool.poetry]
 name = "crm-ddd-poc"
 version = "0.1.0"
@@ -14,6 +45,15 @@ fastapi = {extras = ["standard"], version = "^0.112.2"}
 pydantic = "^2.8.2"
 faker = "^28.4.1"
 
+
+[tool.poetry.group.dev.dependencies]
+bandit = "^1.7.9"
+black = "^24.8.0"
+flake8 = "^7.1.1"
+isort = "^5.13.2"
+pre-commit = "^3.8.0"
+pylint = "^3.3.0"
+toml-sort = "^0.23.1"
 
 [build-system]
 requires = ["poetry-core"]
