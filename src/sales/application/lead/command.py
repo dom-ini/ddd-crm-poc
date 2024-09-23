@@ -96,7 +96,6 @@ class LeadCommandUseCase:
             contact_data = ContactData(
                 first_name=data.first_name,
                 last_name=data.last_name,
-                company_name=data.company_name,
                 phone=data.phone,
                 email=data.email,
             )

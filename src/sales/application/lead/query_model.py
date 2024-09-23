@@ -17,7 +17,6 @@ faker = Faker(locale="pl_PL")
 class ContactDataReadModel(BaseReadModel[ContactData], NestedModel):
     first_name: str = Field(examples=[faker.first_name()])
     last_name: str = Field(examples=[faker.last_name()])
-    company_name: str = Field(examples=[faker.company()])
     phone: str | None = Field(default=None, examples=[faker.phone_number()])
     email: str | None = Field(default=None, examples=[faker.email()])
 
@@ -26,7 +25,6 @@ class ContactDataReadModel(BaseReadModel[ContactData], NestedModel):
         return cls(
             first_name=entity.first_name,
             last_name=entity.last_name,
-            company_name=entity.company_name,
             phone=entity.phone,
             email=entity.email,
         )

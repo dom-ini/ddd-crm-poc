@@ -11,7 +11,6 @@ faker = Faker(locale="pl_PL")
 class ContactDataCreateUpdateModel(BaseCommandModel, NestedModel):
     first_name: str = Field(examples=[faker.first_name()])
     last_name: str = Field(examples=[faker.last_name()])
-    company_name: str = Field(examples=[faker.company()])
     phone: str | None = Field(default=None, examples=[faker.phone_number()])
     email: str | None = Field(default=None, examples=[faker.email()])
 

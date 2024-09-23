@@ -9,7 +9,6 @@ from sales.domain.exceptions import EmailOrPhoneNumberShouldBeSet
 class ContactData(ValueObject):
     first_name: str
     last_name: str
-    company_name: str
     phone: str | None = field(default=None)
     email: str | None = field(default=None)
 
@@ -28,4 +27,4 @@ class ContactData(ValueObject):
             raise EmailOrPhoneNumberShouldBeSet
 
     def __str__(self) -> str:
-        return f"{self.first_name} {self.last_name} ({self.company_name})"
+        return f"{self.first_name} {self.last_name}"

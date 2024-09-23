@@ -35,14 +35,12 @@ def get_leads(
     lead_query_use_case: Annotated[LeadQueryUseCase, Depends(get_lead_query_use_case)],
     customer_id: str | None = None,
     salesman_id: str | None = None,
-    contact_company_name: str | None = None,
     contact_phone: str | None = None,
     contact_email: str | None = None,
 ) -> None:
     leads = lead_query_use_case.get_filtered(
         owner_id=salesman_id,
         customer_id=customer_id,
-        contact_company_name=contact_company_name,
         contact_phone=contact_phone,
         contact_email=contact_email,
     )

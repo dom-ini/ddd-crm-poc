@@ -25,7 +25,6 @@ class LeadQueryUseCase:
         self,
         customer_id: str | None = None,
         owner_id: str | None = None,
-        contact_company_name: str | None = None,
         contact_phone: str | None = None,
         contact_email: str | None = None,
     ) -> Iterable[LeadReadModel]:
@@ -48,11 +47,6 @@ class LeadQueryUseCase:
             FilterCondition(
                 field="contact_data.email",
                 value=contact_email,
-                condition_type=FilterConditionType.SEARCH,
-            ),
-            FilterCondition(
-                field="contact_data.company_name",
-                value=contact_company_name,
                 condition_type=FilterConditionType.SEARCH,
             ),
         ]
