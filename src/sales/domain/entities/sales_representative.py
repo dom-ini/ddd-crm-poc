@@ -11,5 +11,5 @@ class SalesRepresentative(AggregateRoot):
     last_name: str
 
     @classmethod
-    def reconstitute(cls, first_name: str, last_name: str) -> Self:
-        return cls(first_name=first_name, last_name=last_name)
+    def reconstitute(cls, id: str, first_name: str, last_name: str) -> Self:
+        return cls(id=id, first_name=first_name, last_name=last_name)
