@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import Self
 
 from attrs import Attribute, define, field
 
@@ -42,15 +41,6 @@ class ContactPerson(Entity):
             preferred_language=self.preferred_language,
             contact_methods=self.contact_methods,
         )
-
-    def add_contact_method(self, method: ContactMethod) -> None:
-        self._contact_methods = self._contact_methods + (method,)
-
-    def remove_contact_method(self, method: ContactMethod) -> None:
-        new_contact_methods = tuple(
-            current_method for current_method in self._contact_methods if current_method != method
-        )
-        self._contact_methods = new_contact_methods
 
     def __str__(self) -> str:
         return f"Contact person: {self.first_name} {self.last_name} ({self.job_title})"
