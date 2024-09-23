@@ -8,7 +8,11 @@ from building_blocks.domain.validators import validate_no_duplicates
 from customer_management.domain.entities.contact_person import ContactPerson, ContactPersonReadOnly
 from customer_management.domain.entities.contact_person.validators import ContactMethod
 from customer_management.domain.entities.customer.validators import at_least_one_contact_person
-from customer_management.domain.exceptions import ContactPersonDoesNotExist, OnlyRelationManagerCanChangeStatus
+from customer_management.domain.exceptions import (
+    ContactPersonAlreadyExists,
+    ContactPersonDoesNotExist,
+    OnlyRelationManagerCanChangeStatus,
+)
 from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.customer_status import CustomerStatus, InitialStatus
 from customer_management.domain.value_objects.language import Language
@@ -88,6 +92,7 @@ class Customer(AggregateRoot):
         preferred_language: Language,
         contact_methods: Iterable[ContactMethod],
     ) -> None:
+        self._check_if_contact_person_id_is_used(contact_person_id)
         contact_person = self._create_contact_person(
             contact_person_id=contact_person_id,
             first_name=first_name,
@@ -126,13 +131,12 @@ class Customer(AggregateRoot):
             raise ContactPersonDoesNotExist
         self._contact_persons = new_contact_persons
 
-    def add_contact_method(self, contact_person_id: str, method: ContactMethod) -> None:
-        contact_person = self.get_contact_person(contact_person_id)
-        contact_person.add_contact_method(method)
-
-    def remove_contact_method(self, contact_person_id: str, method: ContactMethod) -> None:
-        contact_person = self.get_contact_person(contact_person_id)
-        contact_person.remove_contact_method(method)
+    def _check_if_contact_person_id_is_used(self, id_to_check: str) -> None:
+        try:
+            self.get_contact_person(id_to_check)
+            raise ContactPersonAlreadyExists(id_to_check)
+        except ContactPersonDoesNotExist:
+            pass
 
     def _create_contact_person_with_default_values(
         self,

@@ -25,5 +25,11 @@ class ContactPersonDoesNotExist(DomainException):
     message = "Given contact person is not a contact person of this customer"
 
 
+class ContactPersonAlreadyExists(DomainException):
+    def __init__(self, id_: str) -> None:
+        self.message = f"Contact person with id={id_} already exists"
+        super().__init__()
+
+
 class OnlyRelationManagerCanChangeStatus(DomainException):
     message = "Only relation manager can change status"
