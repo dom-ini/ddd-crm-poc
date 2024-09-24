@@ -6,7 +6,7 @@ from building_blocks.domain.exceptions import InvalidEmailAddress, InvalidPhoneN
 from sales.domain.entities.lead import Lead
 from sales.domain.entities.lead_assignments import LeadAssignments
 from sales.domain.entities.notes import Notes
-from sales.domain.exceptions import OnlyOwnerCanEditNotes, UnauthorizedLeadOwnerChange
+from sales.domain.exceptions import OnlyOwnerCanEditNotes, OnlyOwnerCanModifyLeadData, UnauthorizedLeadOwnerChange
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.contact_data import ContactData
 from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
@@ -21,6 +21,21 @@ def contact_data() -> ContactData:
         phone="+48123123123",
         email="test@example.com",
     )
+
+
+@pytest.fixture
+def contact_data_2() -> ContactData:
+    return ContactData(
+        first_name="Piotr",
+        last_name="Nowak",
+        phone="+48321321321",
+        email="test2@example.com",
+    )
+
+
+@pytest.fixture()
+def source_2() -> AcquisitionSource:
+    return AcquisitionSource(name="cold call")
 
 
 @pytest.fixture
@@ -113,6 +128,60 @@ def test_lead_reconstitution(
     assert lead.source == source
     assert lead.assigned_salesman_id == assignment.new_owner_id
     assert lead.note == note
+
+
+def test_new_lead_update(lead: Lead, contact_data_2: ContactData, source_2: AcquisitionSource) -> None:
+    lead.update(
+        editor_id=lead.created_by_salesman_id,
+        contact_data=contact_data_2,
+        source=source_2,
+    )
+
+    assert lead.source == source_2
+    assert lead.contact_data == contact_data_2
+
+
+def test_assigned_lead_update(lead: Lead, contact_data_2: ContactData, source_2: AcquisitionSource) -> None:
+    owner_id = "salesman_2"
+    lead.assign_salesman(new_salesman_id=owner_id, requestor_id=owner_id)
+
+    lead.update(
+        editor_id=lead.assigned_salesman_id,
+        source=source_2,
+        contact_data=contact_data_2,
+    )
+
+    assert lead.source == source_2
+    assert lead.contact_data == contact_data_2
+
+
+def test_lead_partial_update(lead: Lead, source_2: AcquisitionSource) -> None:
+    old_contact_data = lead.contact_data
+    lead.update(editor_id=lead.created_by_salesman_id, source=source_2)
+
+    assert lead.source == source_2
+    assert lead.contact_data == old_contact_data
+
+
+def test_new_lead_update_by_non_creator_should_fail(
+    lead: Lead, contact_data_2: ContactData, source_2: AcquisitionSource
+) -> None:
+    with pytest.raises(OnlyOwnerCanModifyLeadData):
+        lead.update(editor_id="non creator id", source=source_2, contact_data=contact_data_2)
+
+
+def test_assigned_lead_update_by_non_owner_should_fail(
+    lead: Lead, contact_data_2: ContactData, source_2: AcquisitionSource
+) -> None:
+    owner_id = "salesman_2"
+    lead.assign_salesman(new_salesman_id=owner_id, requestor_id=owner_id)
+
+    with pytest.raises(OnlyOwnerCanModifyLeadData):
+        lead.update(
+            editor_id=lead.created_by_salesman_id,
+            source=source_2,
+            contact_data=contact_data_2,
+        )
 
 
 def test_assign_salesman_to_new_lead(lead: Lead) -> None:

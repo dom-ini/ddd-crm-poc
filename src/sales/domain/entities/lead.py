@@ -7,7 +7,7 @@ from building_blocks.domain.entity import AggregateRoot
 from building_blocks.domain.utils.date import get_current_timestamp
 from sales.domain.entities.lead_assignments import AssignmentHistory, LeadAssignments
 from sales.domain.entities.notes import Notes, NotesHistory
-from sales.domain.exceptions import OnlyOwnerCanEditNotes, UnauthorizedLeadOwnerChange
+from sales.domain.exceptions import OnlyOwnerCanEditNotes, OnlyOwnerCanModifyLeadData, UnauthorizedLeadOwnerChange
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.contact_data import ContactData
 from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
@@ -72,6 +72,18 @@ class Lead(AggregateRoot):
         lead._assignments = assignments
         return lead
 
+    def update(
+        self,
+        editor_id: str,
+        source: AcquisitionSource | None = None,
+        contact_data: ContactData | None = None,
+    ) -> None:
+        self._check_update_permissions(editor_id)
+        if source is not None:
+            self.source = source
+        if contact_data is not None:
+            self.contact_data = contact_data
+
     @property
     def created_at(self) -> dt.datetime:
         return self._created_at
@@ -120,6 +132,13 @@ class Lead(AggregateRoot):
             raise OnlyOwnerCanEditNotes
         self._notes.change_note(new_content=new_content, editor_id=editor_id)
         return self
+
+    def _check_update_permissions(self, editor_id: str) -> None:
+        if not self.has_assigned_salesman and editor_id != self.created_by_salesman_id:
+            raise OnlyOwnerCanModifyLeadData
+
+        if self.has_assigned_salesman and editor_id != self.assigned_salesman_id:
+            raise OnlyOwnerCanModifyLeadData
 
     def _check_assignment_permissions(self, requestor_id: str) -> None:
         if self.has_assigned_salesman and self.assigned_salesman_id != requestor_id:

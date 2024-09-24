@@ -79,9 +79,10 @@ def update_lead(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: LeadUpdateModel,
     lead_id: Annotated[str, Path],
+    editor_id: Annotated[str, Path],  # DOZMIANY wywalić!!!
 ) -> None:
     try:
-        lead = lead_command_use_case.update(lead_id=lead_id, lead_data=data)
+        lead = lead_command_use_case.update(lead_id=lead_id, editor_id=editor_id, lead_data=data)
     except InvalidData as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
     except ObjectDoesNotExist as e:

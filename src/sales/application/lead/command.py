@@ -13,7 +13,12 @@ from sales.application.lead.query_model import AssignmentReadModel, LeadReadMode
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
 from sales.domain.entities.lead import Lead
-from sales.domain.exceptions import EmailOrPhoneNumberShouldBeSet, OnlyOwnerCanEditNotes, UnauthorizedLeadOwnerChange
+from sales.domain.exceptions import (
+    EmailOrPhoneNumberShouldBeSet,
+    OnlyOwnerCanEditNotes,
+    OnlyOwnerCanModifyLeadData,
+    UnauthorizedLeadOwnerChange,
+)
 from sales.domain.repositories.lead import LeadRepository
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.contact_data import ContactData
@@ -43,13 +48,17 @@ class LeadCommandUseCase:
             uow.repository.create(lead)
         return LeadReadModel.from_domain(lead)
 
-    def update(self, lead_id: str, lead_data: LeadUpdateModel) -> LeadReadModel:
+    def update(self, lead_id: str, editor_id: str, lead_data: LeadUpdateModel) -> LeadReadModel:
         with self.lead_uow as uow:
             lead = self._get_lead(uow=uow, lead_id=lead_id)
-            if lead_data.source is not None:
-                lead.source = self._create_source(lead_data.source)
-            if lead_data.contact_data is not None:
-                lead.contact_data = self._create_contact_data(lead_data.contact_data)
+            try:
+                lead.update(
+                    editor_id=editor_id,
+                    source=self._create_source_if_provided(lead_data.source),
+                    contact_data=self._create_contact_data_if_provided(lead_data.contact_data),
+                )
+            except OnlyOwnerCanModifyLeadData as e:
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(lead)
         return LeadReadModel.from_domain(lead)
 
@@ -83,6 +92,12 @@ class LeadCommandUseCase:
         if lead is None:
             raise ObjectDoesNotExist(lead_id)
         return lead
+
+    def _create_source_if_provided(self, source_name: str | None) -> AcquisitionSource | None:
+        return self._create_source(source_name) if source_name else None
+
+    def _create_contact_data_if_provided(self, contact_data: ContactDataCreateUpdateModel | None) -> ContactData | None:
+        return self._create_contact_data(contact_data) if contact_data else None
 
     def _create_source(self, source_name: str) -> AcquisitionSource:
         try:

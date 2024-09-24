@@ -9,6 +9,10 @@ class OnlyOwnerCanModifyOffer(DomainException):
     message = "Only owner can modify offer"
 
 
+class OnlyOwnerCanModifyLeadData(DomainException):
+    message = "Only owner can modify lead data"
+
+
 class UnauthorizedLeadOwnerChange(DomainException):
     message = "Only lead owner can assign a lead"
 
