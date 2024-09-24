@@ -83,6 +83,8 @@ def update_lead(
 ) -> None:
     try:
         lead = lead_command_use_case.update(lead_id=lead_id, editor_id=editor_id, lead_data=data)
+    except UnauthorizedAction as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except InvalidData as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
     except ObjectDoesNotExist as e:
