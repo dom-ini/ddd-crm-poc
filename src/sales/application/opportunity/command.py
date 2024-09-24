@@ -15,7 +15,12 @@ from sales.application.opportunity.command_model import (
 )
 from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
 from sales.domain.entities.opportunity import Opportunity
-from sales.domain.exceptions import AmountMustBeGreaterThanZero, OnlyOwnerCanEditNotes, OnlyOwnerCanModifyOffer
+from sales.domain.exceptions import (
+    AmountMustBeGreaterThanZero,
+    OnlyOwnerCanEditNotes,
+    OnlyOwnerCanModifyOffer,
+    OnlyOwnerCanModifyOpportunityData,
+)
 from sales.domain.repositories.opportunity import OpportunityRepository
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.money.currency import Currency
@@ -55,15 +60,18 @@ class OpportunityCommandUseCase:
             uow.repository.create(opportunity)
         return OpportunityReadModel.from_domain(opportunity)
 
-    def update(self, opportunity_id: str, data: OpportunityUpdateModel) -> OpportunityReadModel:
+    def update(self, opportunity_id: str, editor_id: str, data: OpportunityUpdateModel) -> OpportunityReadModel:
         with self.opportunity_uow as uow:
             opportunity = self._get_opportunity(uow=uow, opportunity_id=opportunity_id)
-            if data.source is not None:
-                opportunity.source = self._create_source(data.source)
-            if data.stage is not None:
-                opportunity.stage = self._create_stage(data.stage)
-            if data.priority is not None:
-                opportunity.priority = self._create_priority(data.priority)
+            try:
+                opportunity.update(
+                    editor_id=editor_id,
+                    source=self._create_source_if_provided(data.source),
+                    stage=self._create_stage_if_provided(data.stage),
+                    priority=self._create_priority_if_provided(data.priority),
+                )
+            except OnlyOwnerCanModifyOpportunityData as e:
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(opportunity)
         return OpportunityReadModel.from_domain(opportunity)
 
@@ -98,6 +106,15 @@ class OpportunityCommandUseCase:
         if opportunity is None:
             raise ObjectDoesNotExist(opportunity_id)
         return opportunity
+
+    def _create_source_if_provided(self, source_name: str | None) -> AcquisitionSource | None:
+        return self._create_source(source_name) if source_name else None
+
+    def _create_stage_if_provided(self, stage_name: str | None) -> OpportunityStage | None:
+        return self._create_stage(stage_name) if stage_name else None
+
+    def _create_priority_if_provided(self, priority_level: str | None) -> Priority | None:
+        return self._create_priority(priority_level) if priority_level else None
 
     def _create_source(self, source_name: str) -> AcquisitionSource:
         return self._create_constrained_value_object(AcquisitionSource, name=source_name)

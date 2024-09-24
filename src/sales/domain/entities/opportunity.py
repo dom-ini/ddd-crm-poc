@@ -7,7 +7,7 @@ from attrs import define, field
 from building_blocks.domain.entity import AggregateRoot
 from building_blocks.domain.utils.date import get_current_timestamp
 from sales.domain.entities.notes import Notes, NotesHistory
-from sales.domain.exceptions import OnlyOwnerCanEditNotes, OnlyOwnerCanModifyOffer
+from sales.domain.exceptions import OnlyOwnerCanEditNotes, OnlyOwnerCanModifyOffer, OnlyOwnerCanModifyOpportunityData
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.note import Note
 from sales.domain.value_objects.offer_item import OfferItem
@@ -84,6 +84,21 @@ class Opportunity(AggregateRoot):
         opportunity._created_at = created_at
         return opportunity
 
+    def update(
+        self,
+        editor_id: str,
+        source: AcquisitionSource | None = None,
+        stage: OpportunityStage | None = None,
+        priority: Priority | None = None,
+    ) -> None:
+        self._check_update_permissions(editor_id)
+        if source is not None:
+            self.source = source
+        if stage is not None:
+            self.stage = stage
+        if priority is not None:
+            self.priority = priority
+
     @property
     def created_at(self) -> dt.datetime:
         return self._created_at
@@ -121,6 +136,10 @@ class Opportunity(AggregateRoot):
         if not editor_id == self.owner_id:
             raise OnlyOwnerCanModifyOffer
         self._offer = new_offer
+
+    def _check_update_permissions(self, editor_id: str) -> None:
+        if editor_id != self.owner_id:
+            raise OnlyOwnerCanModifyOpportunityData
 
     def __str__(self) -> str:
         return f"Opportunity: stage={self.stage}, priority={self.priority}"

@@ -74,9 +74,12 @@ def update_opportunity(
     op_command_use_case: Annotated[OpportunityCommandUseCase, Depends(get_op_command_use_case)],
     data: OpportunityUpdateModel,
     opportunity_id: Annotated[str, Path],
+    editor_id: Annotated[str, Path],  # DOZMIANY wywalić!!!
 ) -> None:
     try:
-        opportunity = op_command_use_case.update(opportunity_id=opportunity_id, data=data)
+        opportunity = op_command_use_case.update(opportunity_id=opportunity_id, editor_id=editor_id, data=data)
+    except UnauthorizedAction as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except ObjectDoesNotExist as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
     except InvalidData as e:

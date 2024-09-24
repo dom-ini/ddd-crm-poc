@@ -9,6 +9,10 @@ class OnlyOwnerCanModifyOffer(DomainException):
     message = "Only owner can modify offer"
 
 
+class OnlyOwnerCanModifyOpportunityData(DomainException):
+    message = "Only owner can modify opportunity data"
+
+
 class OnlyOwnerCanModifyLeadData(DomainException):
     message = "Only owner can modify lead data"
 
@@ -23,3 +27,7 @@ class EmailOrPhoneNumberShouldBeSet(DomainException):
 
 class AmountMustBeGreaterThanZero(DomainException):
     message = "Amount must be greaten than 0"
+
+
+class SalesRepresentativeCanOnlyModifyItsOwnData(DomainException):
+    message = "Sales representative can only modify its own data"

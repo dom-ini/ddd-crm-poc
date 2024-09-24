@@ -1,13 +1,14 @@
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import ObjectDoesNotExist
+from building_blocks.application.exceptions import ObjectDoesNotExist, UnauthorizedAction
 from sales.application.sales_representative.command_model import (
     SalesRepresentativeCreateModel,
     SalesRepresentativeUpdateModel,
 )
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
 from sales.domain.entities.sales_representative import SalesRepresentative
+from sales.domain.exceptions import SalesRepresentativeCanOnlyModifyItsOwnData
 from sales.domain.repositories.sales_representative import SalesRepresentativeRepository
 
 
@@ -26,13 +27,22 @@ class SalesRepresentativeCommandUseCase:
             uow.repository.create(representative)
         return SalesRepresentativeReadModel.from_domain(representative)
 
-    def update(self, representative_id: str, data: SalesRepresentativeUpdateModel) -> SalesRepresentativeReadModel:
+    def update(
+        self,
+        representative_id: str,
+        editor_id: str,
+        data: SalesRepresentativeUpdateModel,
+    ) -> SalesRepresentativeReadModel:
         with self.sr_uow as uow:
             representative = self._get_representative(uow=uow, representative_id=representative_id)
-            if data.first_name is not None:
-                representative.first_name = data.first_name
-            if data.last_name is not None:
-                representative.last_name = data.last_name
+            try:
+                representative.update(
+                    editor_id=editor_id,
+                    first_name=data.first_name,
+                    last_name=data.last_name,
+                )
+            except SalesRepresentativeCanOnlyModifyItsOwnData as e:
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(representative)
         return SalesRepresentativeReadModel.from_domain(representative)
 
