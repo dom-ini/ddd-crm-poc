@@ -35,7 +35,7 @@ class ValueNotAllowed(DomainException):
 
 
 class DuplicateEntry(DomainException):
-    def __init__(self, duplicates: tuple) -> None:
+    def __init__(self, duplicates: Iterable) -> None:
         duplicates_info = "\n".join(str(entry) for entry in duplicates)
         self.message = f"Duplicate entries found:\n{duplicates_info}"
         super().__init__()
