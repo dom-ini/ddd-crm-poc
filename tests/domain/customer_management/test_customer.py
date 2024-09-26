@@ -1,7 +1,7 @@
 import pytest
 
 from building_blocks.domain.exceptions import DuplicateEntry, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
-from customer_management.domain.entities.contact_person.contact_person import ContactPerson, ContactPersonReadOnly
+from customer_management.domain.entities.contact_person import ContactPerson, ContactPersonReadOnly
 from customer_management.domain.entities.customer import Customer
 from customer_management.domain.exceptions import (
     CannotConvertArchivedCustomer,
@@ -12,6 +12,7 @@ from customer_management.domain.exceptions import (
     NotEnoughContactPersons,
     NotEnoughPreferredContactMethods,
     OnlyRelationManagerCanChangeStatus,
+    OnlyRelationManagerCanModifyCustomerData,
 )
 from customer_management.domain.value_objects.address import Address
 from customer_management.domain.value_objects.company_info import CompanyInfo
@@ -60,6 +61,11 @@ def company_info(industry: Industry, segment: CompanySegment, address: Address) 
 
 
 @pytest.fixture()
+def company_info_2(industry: Industry, segment: CompanySegment, address: Address) -> CompanyInfo:
+    return CompanyInfo(name="Other company", industry=industry, segment=segment, address=address)
+
+
+@pytest.fixture()
 def language() -> Language:
     return Language(code="pl", name="polish")
 
@@ -90,6 +96,7 @@ def customer(company_info: CompanyInfo) -> Customer:
 def customer_with_contact_persons(company_info: CompanyInfo, contact_person: ContactPerson) -> Customer:
     customer = Customer(id="customer_2", company_info=company_info, relation_manager_id="salesman_1")
     customer.add_contact_person(
+        editor_id=customer.relation_manager_id,
         contact_person_id=contact_person.id,
         first_name=contact_person.first_name,
         last_name=contact_person.last_name,
@@ -157,10 +164,29 @@ def test_newly_created_customer_should_have_initial_status(customer: Customer) -
     assert isinstance(customer.status, InitialStatus)
 
 
-def test_change_relation_manager(customer: Customer) -> None:
-    customer.change_relation_manager("salesman_2")
+def test_update_customer(customer: Customer, company_info_2: CompanyInfo) -> None:
+    new_relation_manager_id = "new-manager"
+    customer.update(
+        editor_id=customer.relation_manager_id,
+        relation_manager_id=new_relation_manager_id,
+        company_info=company_info_2,
+    )
 
-    assert customer.relation_manager_id == "salesman_2"
+    assert customer.relation_manager_id == new_relation_manager_id
+    assert customer.company_info == company_info_2
+
+
+def test_partial_update_customer(customer: Customer, company_info_2: CompanyInfo) -> None:
+    old_relation_manager_id = customer.relation_manager_id
+    customer.update(editor_id=old_relation_manager_id, company_info=company_info_2)
+
+    assert customer.relation_manager_id == old_relation_manager_id
+    assert customer.company_info == company_info_2
+
+
+def test_update_by_non_relation_manager_should_fail(customer: Customer) -> None:
+    with pytest.raises(OnlyRelationManagerCanModifyCustomerData):
+        customer.update(editor_id="non relation manager", relation_manager_id="new-id")
 
 
 def test_convert_customer_by_non_relation_manager_should_fail(
@@ -253,6 +279,7 @@ def test_add_contact_person_with_existing_id_should_fail(
 ) -> None:
     with pytest.raises(ContactPersonAlreadyExists):
         customer_with_contact_persons.add_contact_person(
+            editor_id=customer_with_contact_persons.relation_manager_id,
             contact_person_id=contact_person.id,
             first_name=contact_person.first_name,
             last_name=contact_person.last_name,
@@ -267,6 +294,7 @@ def test_add_contact_person_with_duplicates_should_fail(
 ) -> None:
     with pytest.raises(DuplicateEntry):
         customer_with_contact_persons.add_contact_person(
+            editor_id=customer_with_contact_persons.relation_manager_id,
             contact_person_id="cp_2",
             first_name=contact_person.first_name,
             last_name=contact_person.last_name,
@@ -282,6 +310,7 @@ def test_add_contact_person_without_preferred_contact_method_should_fail(
     contact_method = ContactMethod(type="email", value="email@example.com")
     with pytest.raises(NotEnoughPreferredContactMethods):
         customer.add_contact_person(
+            editor_id=customer.relation_manager_id,
             contact_person_id="cp_1",
             first_name="Jan",
             last_name="Kowalski",
@@ -296,6 +325,7 @@ def test_update_contact_person(customer_with_contact_persons: Customer, contact_
     contact_method = ContactMethod(type="email", value="test2@example.com", is_preferred=True)
 
     customer_with_contact_persons.update_contact_person(
+        editor_id=customer_with_contact_persons.relation_manager_id,
         contact_person_id=contact_person.id,
         first_name="Paweł",
         last_name="Kowalczyk",
@@ -315,7 +345,11 @@ def test_update_contact_person(customer_with_contact_persons: Customer, contact_
 def test_update_contact_person_partial_update(
     customer_with_contact_persons: Customer, contact_person: ContactPerson
 ) -> None:
-    customer_with_contact_persons.update_contact_person(contact_person_id=contact_person.id, first_name="Paweł")
+    customer_with_contact_persons.update_contact_person(
+        editor_id=customer_with_contact_persons.relation_manager_id,
+        contact_person_id=contact_person.id,
+        first_name="Paweł",
+    )
     person = customer_with_contact_persons.get_contact_person(contact_person.id)
 
     assert person.first_name == "Paweł"
@@ -329,7 +363,9 @@ def test_update_contact_person_with_wrong_id_should_fail(
     customer_with_contact_persons: Customer,
 ) -> None:
     with pytest.raises(ContactPersonDoesNotExist):
-        customer_with_contact_persons.update_contact_person(contact_person_id="invalid id")
+        customer_with_contact_persons.update_contact_person(
+            editor_id=customer_with_contact_persons.relation_manager_id, contact_person_id="invalid id"
+        )
 
 
 def test_update_contact_person_with_duplicates_should_fail(
@@ -339,6 +375,7 @@ def test_update_contact_person_with_duplicates_should_fail(
     language: Language,
 ) -> None:
     customer_with_contact_persons.add_contact_person(
+        editor_id=customer_with_contact_persons.relation_manager_id,
         contact_person_id="cp_2",
         first_name="Piotr",
         last_name="Nowak",
@@ -349,6 +386,7 @@ def test_update_contact_person_with_duplicates_should_fail(
 
     with pytest.raises(DuplicateEntry):
         customer_with_contact_persons.update_contact_person(
+            editor_id=customer_with_contact_persons.relation_manager_id,
             contact_person_id="cp_2",
             first_name=contact_person.first_name,
             last_name=contact_person.last_name,
@@ -356,9 +394,30 @@ def test_update_contact_person_with_duplicates_should_fail(
         )
 
 
+@pytest.mark.parametrize("method_name", ["add_contact_person", "update_contact_person"])
+def test_create_or_update_contact_person_by_non_relation_manager_should_fail(
+    customer_with_contact_persons: Customer,
+    language: Language,
+    contact_method: ContactMethod,
+    method_name: str,
+) -> None:
+    with pytest.raises(OnlyRelationManagerCanModifyCustomerData):
+        getattr(customer_with_contact_persons, method_name)(
+            editor_id="non-manager",
+            contact_person_id="cp-id",
+            first_name="Jan",
+            last_name="Kowalski",
+            job_title="COO",
+            preferred_language=language,
+            contact_methods=[contact_method],
+        )
+
+
 def test_remove_contact_person(customer_with_contact_persons: Customer) -> None:
     person_id = customer_with_contact_persons.contact_persons[0].id
-    customer_with_contact_persons.remove_contact_person(person_id)
+    customer_with_contact_persons.remove_contact_person(
+        id_to_remove=person_id, editor_id=customer_with_contact_persons.relation_manager_id
+    )
 
     assert len(customer_with_contact_persons.contact_persons) == 0
 
@@ -367,4 +426,12 @@ def test_remove_contact_person_with_wrong_id_should_fail(
     customer_with_contact_persons: Customer,
 ) -> None:
     with pytest.raises(ContactPersonDoesNotExist):
-        customer_with_contact_persons.remove_contact_person("invalid id")
+        customer_with_contact_persons.remove_contact_person(
+            id_to_remove="invalid id", editor_id=customer_with_contact_persons.relation_manager_id
+        )
+
+
+def test_remove_contact_person_by_non_relation_manager_should_fail(customer_with_contact_persons: Customer) -> None:
+    person_id = customer_with_contact_persons.contact_persons[0].id
+    with pytest.raises(OnlyRelationManagerCanModifyCustomerData):
+        customer_with_contact_persons.remove_contact_person(editor_id="non manager", id_to_remove=person_id)

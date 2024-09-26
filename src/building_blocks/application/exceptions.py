@@ -18,6 +18,10 @@ class UnauthorizedAction(ApplicationException):
     pass
 
 
+class ConfictingAction(ApplicationException):
+    pass
+
+
 class ObjectDoesNotExist(ApplicationException):
     def __init__(self, id_: str) -> None:
         message = f"Object with id={id_} does not exist"

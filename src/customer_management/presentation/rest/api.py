@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, status as status_code
 
-from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ConfictingAction, InvalidData, ObjectDoesNotExist, UnauthorizedAction
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
     ContactPersonCreateModel,
@@ -70,9 +70,12 @@ def update_customer(
     customer_command_use_case: Annotated[CustomerCommandUseCase, Depends(get_customer_command_use_case)],
     data: CustomerUpdateModel,
     customer_id: Annotated[str, Path],
+    editor_id: Annotated[str, Path],  # DOZMIANY wywalić!!
 ) -> None:
     try:
-        customer = customer_command_use_case.update(customer_id=customer_id, customer_data=data)
+        customer = customer_command_use_case.update(customer_id=customer_id, editor_id=editor_id, customer_data=data)
+    except UnauthorizedAction as e:
+        raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
     except InvalidData as e:
         raise HTTPException(status_code=status_code.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
     except ObjectDoesNotExist as e:
@@ -106,6 +109,8 @@ def convert_customer(
 ) -> None:
     try:
         customer_command_use_case.convert(customer_id, requestor_id=requestor_id)
+    except ConfictingAction as e:
+        raise HTTPException(status_code=status_code.HTTP_409_CONFLICT, detail=e.message) from e
     except UnauthorizedAction as e:
         raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
     except InvalidData as e:
@@ -123,6 +128,8 @@ def archive_customer(
 ) -> None:
     try:
         customer_command_use_case.archive(customer_id, requestor_id=requestor_id)
+    except ConfictingAction as e:
+        raise HTTPException(status_code=status_code.HTTP_409_CONFLICT, detail=e.message) from e
     except UnauthorizedAction as e:
         raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
 

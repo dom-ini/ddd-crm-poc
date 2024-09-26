@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ConfictingAction, InvalidData, ObjectDoesNotExist, UnauthorizedAction
 from building_blocks.domain.exceptions import DuplicateEntry, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from customer_management.application.command_model import (
     AddressDataCreateUpdateModel,
@@ -15,7 +15,7 @@ from customer_management.application.command_model import (
     LanguageCreateUpdateModel,
 )
 from customer_management.application.query_model import ContactPersonReadModel, CustomerReadModel
-from customer_management.domain.entities.customer.customer import Customer
+from customer_management.domain.entities.customer import Customer
 from customer_management.domain.exceptions import (
     CannotConvertArchivedCustomer,
     ContactPersonDoesNotExist,
@@ -24,6 +24,7 @@ from customer_management.domain.exceptions import (
     NotEnoughContactPersons,
     NotEnoughPreferredContactMethods,
     OnlyRelationManagerCanChangeStatus,
+    OnlyRelationManagerCanModifyCustomerData,
 )
 from customer_management.domain.repositories.customer import CustomerRepository
 from customer_management.domain.value_objects.address import Address
@@ -55,13 +56,17 @@ class CustomerCommandUseCase:
             uow.repository.create(customer)
         return CustomerReadModel.from_domain(customer)
 
-    def update(self, customer_id: str, customer_data: CustomerUpdateModel) -> CustomerReadModel:
+    def update(self, customer_id: str, editor_id: str, customer_data: CustomerUpdateModel) -> CustomerReadModel:
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
-            if customer_data.relation_manager_id is not None:
-                customer.change_relation_manager(customer_data.relation_manager_id)
-            if customer_data.company_info is not None:
-                customer.company_info = self._create_company_info(customer_data.company_info)
+            try:
+                customer.update(
+                    editor_id=editor_id,
+                    relation_manager_id=customer_data.relation_manager_id,
+                    company_info=self._create_company_info_if_provided(customer_data.company_info),
+                )
+            except OnlyRelationManagerCanModifyCustomerData as e:
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(customer)
         return CustomerReadModel.from_domain(customer)
 
@@ -71,10 +76,11 @@ class CustomerCommandUseCase:
             try:
                 customer.convert(requestor_id)
             except (
-                OnlyRelationManagerCanChangeStatus,
                 CustomerAlreadyConverted,
                 CannotConvertArchivedCustomer,
             ) as e:
+                raise ConfictingAction(e.message) from e
+            except (OnlyRelationManagerCanChangeStatus,) as e:
                 raise UnauthorizedAction(e.message) from e
             except NotEnoughContactPersons as e:
                 raise InvalidData(e.message) from e
@@ -85,14 +91,15 @@ class CustomerCommandUseCase:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             try:
                 customer.archive(requestor_id)
-            except (
-                OnlyRelationManagerCanChangeStatus,
-                CustomerAlreadyArchived,
-            ) as e:
+            except (CustomerAlreadyArchived,) as e:
+                raise ConfictingAction(e.message) from e
+            except (OnlyRelationManagerCanChangeStatus,) as e:
                 raise UnauthorizedAction(e.message) from e
             uow.repository.update(customer)
 
-    def create_contact_person(self, customer_id: str, data: ContactPersonCreateModel) -> ContactPersonReadModel:
+    def create_contact_person(
+        self, customer_id: str, editor_id: str, data: ContactPersonCreateModel
+    ) -> ContactPersonReadModel:
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             contact_person_id = str(uuid4())
@@ -100,6 +107,7 @@ class CustomerCommandUseCase:
             contact_methods = self._create_contact_methods(data.contact_methods)
             try:
                 customer.add_contact_person(
+                    editor_id=editor_id,
                     contact_person_id=contact_person_id,
                     first_name=data.first_name,
                     last_name=data.last_name,
@@ -109,12 +117,18 @@ class CustomerCommandUseCase:
                 )
             except (NotEnoughPreferredContactMethods, DuplicateEntry) as e:
                 raise InvalidData(e.message) from e
+            except OnlyRelationManagerCanModifyCustomerData as e:
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(customer)
         contact_person = customer.get_contact_person(contact_person_id)
         return ContactPersonReadModel.from_domain(contact_person)
 
     def update_contact_person(
-        self, customer_id: str, contact_person_id: str, data: ContactPersonUpdateModel
+        self,
+        customer_id: str,
+        contact_person_id: str,
+        editor_id: str,
+        data: ContactPersonUpdateModel,
     ) -> ContactPersonReadModel:
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
@@ -122,6 +136,7 @@ class CustomerCommandUseCase:
                 language = self._create_preferred_language(data.preferred_language) if data.preferred_language else None
                 contact_methods = self._create_contact_methods(data.contact_methods) if data.contact_methods else None
                 customer.update_contact_person(
+                    editor_id=editor_id,
                     contact_person_id=contact_person_id,
                     first_name=data.first_name,
                     last_name=data.last_name,
@@ -133,17 +148,21 @@ class CustomerCommandUseCase:
                 raise ObjectDoesNotExist(contact_person_id) from e
             except (NotEnoughPreferredContactMethods, DuplicateEntry) as e:
                 raise InvalidData(e.message) from e
+            except OnlyRelationManagerCanModifyCustomerData as e:
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(customer)
         contact_person = customer.get_contact_person(contact_person_id)
         return ContactPersonReadModel.from_domain(contact_person)
 
-    def remove_contact_person(self, customer_id: str, contact_person_id: str) -> None:
+    def remove_contact_person(self, customer_id: str, editor_id: str, contact_person_id: str) -> None:
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             try:
-                customer.remove_contact_person(contact_person_id)
+                customer.remove_contact_person(editor_id=editor_id, id_to_remove=contact_person_id)
             except ContactPersonDoesNotExist as e:
                 raise ObjectDoesNotExist(customer_id) from e
+            except OnlyRelationManagerCanModifyCustomerData as e:
+                raise UnauthorizedAction(e.message) from e
             uow.repository.update(customer)
 
     def _get_customer(self, uow: CustomerUnitOfWork, customer_id: str) -> Customer:
@@ -151,6 +170,9 @@ class CustomerCommandUseCase:
         if customer is None:
             raise ObjectDoesNotExist(customer_id)
         return customer
+
+    def _create_company_info_if_provided(self, company_info: CompanyInfoCreateUpdateModel) -> CompanyInfo | None:
+        return self._create_company_info(company_info) if company_info else None
 
     def _create_preferred_language(self, data: LanguageCreateUpdateModel) -> Language:
         language = Language(code=data.code, name=data.name)

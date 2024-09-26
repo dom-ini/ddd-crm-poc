@@ -33,3 +33,7 @@ class ContactPersonAlreadyExists(DomainException):
 
 class OnlyRelationManagerCanChangeStatus(DomainException):
     message = "Only relation manager can change status"
+
+
+class OnlyRelationManagerCanModifyCustomerData(DomainException):
+    message = "Only relation manager can modify customer data"

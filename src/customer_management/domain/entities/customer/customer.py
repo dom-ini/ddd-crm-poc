@@ -12,6 +12,7 @@ from customer_management.domain.exceptions import (
     ContactPersonAlreadyExists,
     ContactPersonDoesNotExist,
     OnlyRelationManagerCanChangeStatus,
+    OnlyRelationManagerCanModifyCustomerData,
 )
 from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.customer_status import CustomerStatus, InitialStatus
@@ -51,6 +52,18 @@ class Customer(AggregateRoot):
         customer._contact_persons = contact_persons
         return customer
 
+    def update(
+        self,
+        editor_id: str,
+        relation_manager_id: str | None = None,
+        company_info: CompanyInfo | None = None,
+    ) -> None:
+        self._check_update_permissions(editor_id)
+        if relation_manager_id is not None:
+            self._relation_manager_id = relation_manager_id
+        if company_info is not None:
+            self.company_info = company_info
+
     @_status.default
     def _get_default_status(self) -> CustomerStatus:
         return InitialStatus(self)
@@ -68,9 +81,6 @@ class Customer(AggregateRoot):
     def relation_manager_id(self) -> str:
         return self._relation_manager_id
 
-    def change_relation_manager(self, new_relation_manager_id: str) -> None:
-        self._relation_manager_id = new_relation_manager_id
-
     def convert(self, requestor_id: str) -> None:
         self._check_status_change_permissions(requestor_id)
         self._status.convert()
@@ -85,6 +95,7 @@ class Customer(AggregateRoot):
 
     def add_contact_person(
         self,
+        editor_id: str,
         contact_person_id: str,
         first_name: str,
         last_name: str,
@@ -92,6 +103,7 @@ class Customer(AggregateRoot):
         preferred_language: Language,
         contact_methods: Iterable[ContactMethod],
     ) -> None:
+        self._check_update_permissions(editor_id)
         self._check_if_contact_person_id_is_used(contact_person_id)
         contact_person = self._create_contact_person(
             contact_person_id=contact_person_id,
@@ -106,6 +118,7 @@ class Customer(AggregateRoot):
 
     def update_contact_person(
         self,
+        editor_id: str,
         contact_person_id: str,
         first_name: str | None = None,
         last_name: str | None = None,
@@ -113,6 +126,7 @@ class Customer(AggregateRoot):
         preferred_language: Language | None = None,
         contact_methods: Iterable[ContactMethod] | None = None,
     ) -> None:
+        self._check_update_permissions(editor_id)
         index, contact_person = self._get_contact_person_by_id(contact_person_id)
         new_contact_person = self._create_contact_person_with_default_values(
             contact_person=contact_person,
@@ -125,11 +139,16 @@ class Customer(AggregateRoot):
         new_contact_persons = self._contact_persons[:index] + (new_contact_person,) + self._contact_persons[index + 1 :]
         self._set_contact_persons_if_valid(new_contact_persons)
 
-    def remove_contact_person(self, id_to_remove: str) -> None:
+    def remove_contact_person(self, editor_id: str, id_to_remove: str) -> None:
+        self._check_update_permissions(editor_id)
         new_contact_persons = tuple(person for person in self._contact_persons if id_to_remove != person.id)
         if len(new_contact_persons) == len(self._contact_persons):
             raise ContactPersonDoesNotExist
         self._contact_persons = new_contact_persons
+
+    def _check_update_permissions(self, editor_id: str) -> None:
+        if editor_id != self.relation_manager_id:
+            raise OnlyRelationManagerCanModifyCustomerData
 
     def _check_if_contact_person_id_is_used(self, id_to_check: str) -> None:
         try:
