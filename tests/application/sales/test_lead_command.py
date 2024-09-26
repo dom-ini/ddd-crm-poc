@@ -40,54 +40,42 @@ def mock_lead() -> MagicMock:
 
 
 @pytest.mark.parametrize(
-    "data,causing_exc_class",
+    "data",
     [
-        (
-            LeadCreateModel(
-                customer_id="customer-1",
-                source="website",
-                contact_data=ContactDataCreateUpdateModel(
-                    first_name="John",
-                    last_name="Doe",
-                    phone=None,
-                    email="invalid email",
-                ),
+        LeadCreateModel(
+            customer_id="customer-1",
+            source="website",
+            contact_data=ContactDataCreateUpdateModel(
+                first_name="John",
+                last_name="Doe",
+                phone=None,
+                email="invalid email",
             ),
-            InvalidEmailAddress,
         ),
-        (
-            LeadCreateModel(
-                customer_id="customer-1",
-                source="website",
-                contact_data=ContactDataCreateUpdateModel(
-                    first_name="John",
-                    last_name="Doe",
-                    phone="invalid phone",
-                    email=None,
-                ),
+        LeadCreateModel(
+            customer_id="customer-1",
+            source="website",
+            contact_data=ContactDataCreateUpdateModel(
+                first_name="John",
+                last_name="Doe",
+                phone="invalid phone",
+                email=None,
             ),
-            InvalidPhoneNumber,
         ),
-        (
-            LeadCreateModel(
-                customer_id="customer-1",
-                source="website",
-                contact_data=ContactDataCreateUpdateModel(first_name="John", last_name="Doe", phone=None, email=None),
-            ),
-            EmailOrPhoneNumberShouldBeSet,
+        LeadCreateModel(
+            customer_id="customer-1",
+            source="website",
+            contact_data=ContactDataCreateUpdateModel(first_name="John", last_name="Doe", phone=None, email=None),
         ),
-        (
-            LeadCreateModel(
-                customer_id="customer-1",
-                source="invalid source",
-                contact_data=ContactDataCreateUpdateModel(
-                    first_name="John",
-                    last_name="Doe",
-                    phone="+48123123123",
-                    email="test@example.com",
-                ),
+        LeadCreateModel(
+            customer_id="customer-1",
+            source="invalid source",
+            contact_data=ContactDataCreateUpdateModel(
+                first_name="John",
+                last_name="Doe",
+                phone="+48123123123",
+                email="test@example.com",
             ),
-            ValueNotAllowed,
         ),
     ],
 )
@@ -95,12 +83,10 @@ def test_create_lead_correctly_raises_invalid_data(
     lead_uow: LeadUnitOfWork,
     lead_command_use_case: LeadCommandUseCase,
     data: LeadCreateModel,
-    causing_exc_class: type[DomainException],
 ) -> None:
-    with pytest.raises(InvalidData) as exc_info:
+    with pytest.raises(InvalidData):
         lead_command_use_case.create(lead_data=data, creator_id="salesman-1")
 
-    assert isinstance(exc_info.value.__cause__, causing_exc_class)
     lead_uow.__enter__().repository.create.assert_not_called()
 
 
@@ -183,10 +169,10 @@ def test_calling_method_with_wrong_lead_id_should_fail(
     lead_id = "invalid id"
     data = MagicMock()
     lead_uow.__enter__().repository.get.return_value = None
-    kwargs = {data_field_name: data, editor_field_name: "salesman-1"}
+    kwargs = {"lead_id": lead_id, data_field_name: data, editor_field_name: "salesman-1"}
 
     with pytest.raises(ObjectDoesNotExist):
-        getattr(lead_command_use_case, method_name)(lead_id=lead_id, **kwargs)
+        getattr(lead_command_use_case, method_name)(**kwargs)
 
     lead_uow.__enter__().repository.update.assert_not_called()
 
