@@ -6,7 +6,12 @@ import pytest
 from building_blocks.domain.exceptions import ValueNotAllowed
 from sales.domain.entities.notes import Notes
 from sales.domain.entities.opportunity import Offer, Opportunity
-from sales.domain.exceptions import AmountMustBeGreaterThanZero, OnlyOwnerCanEditNotes, OnlyOwnerCanModifyOffer
+from sales.domain.exceptions import (
+    AmountMustBeGreaterThanZero,
+    OnlyOwnerCanEditNotes,
+    OnlyOwnerCanModifyOffer,
+    OnlyOwnerCanModifyOpportunityData,
+)
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.money.currency import Currency
 from sales.domain.value_objects.money.money import Money
@@ -25,6 +30,16 @@ def stage() -> OpportunityStage:
 @pytest.fixture()
 def priority() -> Priority:
     return Priority(level="high")
+
+
+@pytest.fixture()
+def stage_2() -> OpportunityStage:
+    return OpportunityStage(name="closed-lost")
+
+
+@pytest.fixture()
+def priority_2() -> Priority:
+    return Priority(level="urgent")
 
 
 @pytest.fixture()
@@ -135,6 +150,43 @@ def test_opportunity_reconstitution(
     assert opportunity.owner_id == "salesman_1"
     assert opportunity.created_at == created_at
     assert opportunity.note == note
+
+
+def test_opportunity_update(
+    opportunity: Opportunity,
+    source_2: AcquisitionSource,
+    stage_2: OpportunityStage,
+    priority_2: Priority,
+) -> None:
+    opportunity.update(
+        editor_id=opportunity.owner_id,
+        source=source_2,
+        stage=stage_2,
+        priority=priority_2,
+    )
+
+    assert opportunity.source == source_2
+    assert opportunity.stage == stage_2
+    assert opportunity.priority == priority_2
+
+
+def test_opportunity_partial_update(
+    opportunity: Opportunity,
+    stage_2: OpportunityStage,
+) -> None:
+    old_source = opportunity.source
+    old_priority = opportunity.priority
+
+    opportunity.update(editor_id=opportunity.owner_id, stage=stage_2)
+
+    assert opportunity.stage == stage_2
+    assert opportunity.source == old_source
+    assert opportunity.priority == old_priority
+
+
+def test_opportunity_update_by_non_owner_should_fail(opportunity: Opportunity, stage_2: OpportunityStage) -> None:
+    with pytest.raises(OnlyOwnerCanModifyOpportunityData):
+        opportunity.update(editor_id="non owner id", stage=stage_2)
 
 
 def test_change_note_by_owner(opportunity: Opportunity) -> None:

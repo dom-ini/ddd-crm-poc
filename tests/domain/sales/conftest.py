@@ -12,6 +12,11 @@ def source() -> AcquisitionSource:
 
 
 @pytest.fixture()
+def source_2() -> AcquisitionSource:
+    return AcquisitionSource(name="cold call")
+
+
+@pytest.fixture()
 def note() -> Note:
     return Note(
         created_by_id="salesman_1",

@@ -33,11 +33,6 @@ def contact_data_2() -> ContactData:
     )
 
 
-@pytest.fixture()
-def source_2() -> AcquisitionSource:
-    return AcquisitionSource(name="cold call")
-
-
 @pytest.fixture
 def lead(contact_data: ContactData, source: AcquisitionSource) -> Lead:
     return Lead.make(
