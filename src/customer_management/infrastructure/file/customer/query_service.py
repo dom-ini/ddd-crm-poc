@@ -6,7 +6,7 @@ from building_blocks.infrastructure.file.filters import FileFilterService
 from building_blocks.infrastructure.file.io import get_read_db
 from customer_management.application.query_model import ContactPersonReadModel, CustomerReadModel
 from customer_management.application.query_service import CustomerQueryService
-from customer_management.domain.entities.customer.customer import Customer
+from customer_management.domain.entities.customer import Customer
 from customer_management.infrastructure.file import config
 
 

@@ -5,7 +5,7 @@ from pydantic import Field
 
 from building_blocks.application.nested_model import NestedModel
 from building_blocks.application.query_model import BaseReadModel
-from customer_management.domain.entities.contact_person.contact_person import ContactPerson
+from customer_management.domain.entities.contact_person import ContactPerson
 from customer_management.domain.entities.customer import Customer
 from customer_management.domain.value_objects.address import Address
 from customer_management.domain.value_objects.company_info import CompanyInfo
