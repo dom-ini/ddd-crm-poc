@@ -30,6 +30,7 @@ class BaseFileUnitOfWork[RepositoryT](ABC):
         self._db.sync()
         self._snapshot = None
         self._db.close()
+        self._is_active = False
 
     def rollback(self) -> None:
         if not self._is_active:
@@ -37,3 +38,5 @@ class BaseFileUnitOfWork[RepositoryT](ABC):
         self._db.clear()
         self._db.update(self._snapshot)
         self._db.close()
+        self._is_active = False
+
