@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Self
 
 from attrs import define, field
@@ -18,8 +18,8 @@ from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.customer_status import CustomerStatus, InitialStatus
 from customer_management.domain.value_objects.language import Language
 
-ContactPersons = Iterable[ContactPerson]
-ContactPersonsReadOnly = Iterable[ContactPersonReadOnly]
+ContactPersons = Sequence[ContactPerson]
+ContactPersonsReadOnly = Sequence[ContactPersonReadOnly]
 
 
 def get_unique_contact_person_fields(contact_person: ContactPerson) -> tuple:

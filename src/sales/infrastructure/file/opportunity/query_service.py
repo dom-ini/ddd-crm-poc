@@ -1,4 +1,5 @@
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
+from pathlib import Path
 
 from building_blocks.application.filters import FilterCondition
 from building_blocks.infrastructure.file.filters import FileFilterService
@@ -15,7 +16,7 @@ class OpportunityFileQueryService(OpportunityQueryService):
 
     def __init__(
         self,
-        opportunities_file_path: str = config.OPPORTUNITIES_FILE_PATH,
+        opportunities_file_path: Path = config.OPPORTUNITIES_FILE_PATH,
     ) -> None:
         self._file_path = opportunities_file_path
         self._filter_service = self.FilterServiceType()
@@ -31,13 +32,13 @@ class OpportunityFileQueryService(OpportunityQueryService):
             return None
         return OpportunityReadModel.from_domain(opportunity)
 
-    def get_all(self) -> Iterable[OpportunityReadModel]:
+    def get_all(self) -> Sequence[OpportunityReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             opportunities = [OpportunityReadModel.from_domain(db.get(id)) for id in all_ids]
         return tuple(opportunities)
 
-    def get_filtered(self, filters: Iterable[FilterCondition]) -> Iterable[OpportunityReadModel]:
+    def get_filtered(self, filters: Iterable[FilterCondition]) -> Sequence[OpportunityReadModel]:
         with get_read_db(self._file_path) as db:
             all_ids = db.keys()
             opportunities: Iterator[Opportunity] = (db.get(id) for id in all_ids)
@@ -48,14 +49,14 @@ class OpportunityFileQueryService(OpportunityQueryService):
             ]
         return tuple(filtered_opportunities)
 
-    def get_notes(self, opportunity_id: str) -> Iterable[NoteReadModel] | None:
+    def get_notes(self, opportunity_id: str) -> Sequence[NoteReadModel] | None:
         opportunity = self._get_single_opportunity(opportunity_id)
         if opportunity is None:
             return None
         notes = (NoteReadModel.from_domain(note) for note in opportunity.notes_history)
         return tuple(notes)
 
-    def get_offer(self, opportunity_id: str) -> Iterable[OfferItemReadModel] | None:
+    def get_offer(self, opportunity_id: str) -> Sequence[OfferItemReadModel] | None:
         opportunity = self._get_single_opportunity(opportunity_id)
         if opportunity is None:
             return None
