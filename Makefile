@@ -24,5 +24,11 @@ test_domain:
 	poetry run pytest tests/domain
 test_application:
 	poetry run pytest tests/application
+test_infrastructure:
+	poetry run pytest tests/infrastructure
+test_unit:
+	poetry run pytest tests -m "not integration"
+test_integration:
+	poetry run pytest tests -m integration
 test_all:
 	poetry run pytest tests

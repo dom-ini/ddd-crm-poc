@@ -70,3 +70,8 @@ min-similarity-lines = 6
 
 [tool.pylint-per-file-ignores]
 "customer_status.py" = "protected-access"
+
+[tool.pytest.ini_options]
+markers = [
+  "integration"
+]
