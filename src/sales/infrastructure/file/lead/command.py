@@ -4,4 +4,4 @@ from sales.infrastructure.file.lead.repository import LeadFileRepository
 
 
 class LeadFileUnitOfWork(BaseFileUnitOfWork, LeadUnitOfWork):
-    Repository = LeadFileRepository
+    RepositoryType = LeadFileRepository

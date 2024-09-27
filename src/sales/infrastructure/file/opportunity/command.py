@@ -4,4 +4,4 @@ from sales.infrastructure.file.opportunity.repository import OpportunityFileRepo
 
 
 class OpportunityFileUnitOfWork(BaseFileUnitOfWork, OpportunityUnitOfWork):
-    Repository = OpportunityFileRepository
+    RepositoryType = OpportunityFileRepository

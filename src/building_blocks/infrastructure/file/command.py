@@ -1,14 +1,15 @@
 import shelve
 from abc import ABC
+from pathlib import Path
 
 from building_blocks.infrastructure.exceptions import NoActiveTransaction, TransactionAlreadyActive
 from building_blocks.infrastructure.file.io import get_write_db
 
 
 class BaseFileUnitOfWork[RepositoryT](ABC):
-    Repository: RepositoryT
+    RepositoryType: RepositoryT
 
-    def __init__(self, file_path: str) -> None:
+    def __init__(self, file_path: Path) -> None:
         self.repository: RepositoryT | None = None
         self.db_path = file_path
         self._db: shelve.Shelf | None = None
@@ -20,7 +21,7 @@ class BaseFileUnitOfWork[RepositoryT](ABC):
             raise TransactionAlreadyActive
         self._db = get_write_db(self.db_path)
         self._snapshot = dict(self._db)
-        self.repository = self.Repository(self._db)
+        self.repository = self.RepositoryType(self._db)
         self._is_active = True
 
     def commit(self) -> None:

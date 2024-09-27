@@ -4,4 +4,4 @@ from customer_management.infrastructure.file.customer.repository import Customer
 
 
 class CustomerFileUnitOfWork(BaseFileUnitOfWork, CustomerUnitOfWork):
-    Repository = CustomerFileRepository
+    RepositoryType = CustomerFileRepository

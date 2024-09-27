@@ -4,4 +4,4 @@ from sales.infrastructure.file.sales_representative.repository import SalesRepre
 
 
 class SalesRepresentativeFileUnitOfWork(BaseFileUnitOfWork, SalesRepresentativeUnitOfWork):
-    Repository = SalesRepresentativeFileRepository
+    RepositoryType = SalesRepresentativeFileRepository
