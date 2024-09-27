@@ -1,12 +1,11 @@
-import shelve
-
 from building_blocks.infrastructure.exceptions import ObjectAlreadyExists
+from building_blocks.infrastructure.file.command import FileLikeDB
 from sales.domain.entities.lead import Lead
 from sales.domain.repositories.lead import LeadRepository
 
 
 class LeadFileRepository(LeadRepository):
-    def __init__(self, db: shelve.Shelf) -> None:
+    def __init__(self, db: FileLikeDB) -> None:
         self.db = db
 
     def get(self, lead_id: str) -> Lead | None:

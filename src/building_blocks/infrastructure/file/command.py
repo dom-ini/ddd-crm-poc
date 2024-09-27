@@ -1,9 +1,17 @@
-import shelve
-from abc import ABC
+from abc import ABC, abstractmethod
+from collections.abc import MutableMapping
 from pathlib import Path
 
 from building_blocks.infrastructure.exceptions import NoActiveTransaction, TransactionAlreadyActive
 from building_blocks.infrastructure.file.io import get_write_db
+
+
+class FileLikeDB(ABC, MutableMapping):
+    @abstractmethod
+    def sync(self) -> None: ...
+
+    @abstractmethod
+    def close(self) -> None: ...
 
 
 class BaseFileUnitOfWork[RepositoryT](ABC):
@@ -12,14 +20,14 @@ class BaseFileUnitOfWork[RepositoryT](ABC):
     def __init__(self, file_path: Path) -> None:
         self.repository: RepositoryT | None = None
         self.db_path = file_path
-        self._db: shelve.Shelf | None = None
+        self._db: FileLikeDB | None = None
         self._snapshot = None
         self._is_active = False
 
     def begin(self) -> None:
         if self._is_active:
             raise TransactionAlreadyActive
-        self._db = get_write_db(self.db_path)
+        self._db = self._get_db()
         self._snapshot = dict(self._db)
         self.repository = self.RepositoryType(self._db)
         self._is_active = True
@@ -40,3 +48,5 @@ class BaseFileUnitOfWork[RepositoryT](ABC):
         self._db.close()
         self._is_active = False
 
+    def _get_db(self) -> FileLikeDB:
+        return get_write_db(self.db_path)
