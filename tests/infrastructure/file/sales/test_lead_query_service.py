@@ -26,21 +26,6 @@ def command_use_case() -> LeadCommandUseCase:
 
 
 @pytest.fixture(scope="session")
-def salesman_1_id() -> str:
-    return str(uuid4())
-
-
-@pytest.fixture(scope="session")
-def salesman_2_id() -> str:
-    return str(uuid4())
-
-
-@pytest.fixture(scope="session")
-def note_content() -> str:
-    return "This is a note"
-
-
-@pytest.fixture(scope="session")
 def new_salesman_id() -> str:
     return str(uuid4())
 
