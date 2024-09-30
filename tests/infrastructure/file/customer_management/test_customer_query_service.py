@@ -1,119 +1,13 @@
-from collections.abc import Iterator, Sequence
+from collections.abc import Sequence
 
 import pytest
 
 from building_blocks.application.filters import FilterCondition, FilterConditionType
-from customer_management.application.command import CustomerCommandUseCase
-from customer_management.application.command_model import (
-    AddressDataCreateUpdateModel,
-    CompanyInfoCreateUpdateModel,
-    ContactMethodCreateUpdateModel,
-    ContactPersonCreateModel,
-    CountryCreateUpdateModel,
-    CustomerCreateModel,
-    LanguageCreateUpdateModel,
-)
+from customer_management.application.command_model import ContactPersonCreateModel
 from customer_management.application.query_model import CustomerReadModel
-from customer_management.infrastructure.file.customer.command import CustomerFileUnitOfWork
 from customer_management.infrastructure.file.customer.query_service import CustomerFileQueryService
-from tests.infrastructure.file.conftest import TEST_DATA_FOLDER
-
-CUSTOMER_QUERY_DB_FILE = "test-query-customer"
-TEST_DATA_PATH = TEST_DATA_FOLDER / CUSTOMER_QUERY_DB_FILE
-
-
-@pytest.fixture(scope="session")
-def command_use_case() -> CustomerCommandUseCase:
-    uow = CustomerFileUnitOfWork(file_path=TEST_DATA_PATH)
-    command_use_case = CustomerCommandUseCase(customer_uow=uow)
-    return command_use_case
-
-
-@pytest.fixture(scope="session")
-def address() -> AddressDataCreateUpdateModel:
-    country = CountryCreateUpdateModel(name="Polska", code="pl")
-    return AddressDataCreateUpdateModel(
-        country=country,
-        street="Street",
-        street_no="123",
-        postal_code="11222",
-        city="City",
-    )
-
-
-@pytest.fixture(scope="session")
-def contact_person() -> ContactPersonCreateModel:
-    language = LanguageCreateUpdateModel(name="english", code="en")
-    contact_method = ContactMethodCreateUpdateModel(type="email", value="email@example.com", is_preferred=True)
-    return ContactPersonCreateModel(
-        first_name="Jan",
-        last_name="Kowalski",
-        job_title="CEO",
-        preferred_language=language,
-        contact_methods=[contact_method],
-    )
-
-
-@pytest.fixture(scope="session", autouse=True)
-def customer_1(
-    command_use_case: CustomerCommandUseCase,
-    salesman_1_id: str,
-    address: AddressDataCreateUpdateModel,
-    contact_person: ContactPersonCreateModel,
-) -> CustomerReadModel:
-    company_info = CompanyInfoCreateUpdateModel(
-        name="Company 1",
-        industry="automotive",
-        size="medium",
-        legal_form="limited",
-        address=address,
-    )
-    data = CustomerCreateModel(relation_manager_id=salesman_1_id, company_info=company_info)
-    customer = command_use_case.create(customer_data=data)
-
-    command_use_case.create_contact_person(
-        customer_id=customer.id,
-        editor_id=customer.relation_manager_id,
-        data=contact_person,
-    )
-
-    return customer
-
-
-@pytest.fixture(scope="session", autouse=True)
-def customer_2(
-    command_use_case: CustomerCommandUseCase,
-    salesman_1_id: str,
-    address: AddressDataCreateUpdateModel,
-) -> CustomerReadModel:
-    company_info = CompanyInfoCreateUpdateModel(
-        name="Company 2",
-        industry="agriculture",
-        size="small",
-        legal_form="partnership",
-        address=address,
-    )
-    data = CustomerCreateModel(relation_manager_id=salesman_1_id, company_info=company_info)
-    customer = command_use_case.create(customer_data=data)
-    return customer
-
-
-@pytest.fixture(scope="session", autouse=True)
-def customer_3(
-    command_use_case: CustomerCommandUseCase,
-    salesman_2_id: str,
-    address: AddressDataCreateUpdateModel,
-) -> CustomerReadModel:
-    company_info = CompanyInfoCreateUpdateModel(
-        name="Company 3",
-        industry="technology",
-        size="large",
-        legal_form="other",
-        address=address,
-    )
-    data = CustomerCreateModel(relation_manager_id=salesman_2_id, company_info=company_info)
-    customer = command_use_case.create(customer_data=data)
-    return customer
+from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
+from tests.infrastructure.file.conftest import CUSTOMER_TEST_DATA_PATH
 
 
 @pytest.fixture()
@@ -125,17 +19,9 @@ def all_customers(
     return (customer_1, customer_2, customer_3)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def clean_data() -> Iterator[None]:
-    yield
-    for file in TEST_DATA_FOLDER.iterdir():
-        if file.name.startswith(CUSTOMER_QUERY_DB_FILE):
-            file.unlink()
-
-
 @pytest.fixture()
 def query_service() -> CustomerFileQueryService:
-    return CustomerFileQueryService(customers_file_path=TEST_DATA_PATH)
+    return CustomerFileQueryService(customers_file_path=CUSTOMER_TEST_DATA_PATH)
 
 
 def test_get_customer(query_service: CustomerFileQueryService, customer_1: CustomerReadModel) -> None:
@@ -160,12 +46,12 @@ def test_get_filtered(
     query_service: CustomerFileQueryService,
     customer_1: CustomerReadModel,
     customer_2: CustomerReadModel,
-    salesman_1_id: str,
+    representative_1: SalesRepresentativeReadModel,
 ) -> None:
     filters = [
         FilterCondition(
             field="relation_manager_id",
-            value=salesman_1_id,
+            value=representative_1.id,
             condition_type=FilterConditionType.EQUALS,
         )
     ]

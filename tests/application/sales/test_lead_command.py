@@ -31,7 +31,8 @@ def lead_uow(mock_lead_repository: LeadRepository) -> LeadUnitOfWork:
 
 @pytest.fixture()
 def lead_command_use_case(lead_uow: LeadUnitOfWork) -> LeadCommandUseCase:
-    return LeadCommandUseCase(lead_uow=lead_uow)
+    customer_service = MagicMock()
+    return LeadCommandUseCase(lead_uow=lead_uow, customer_service=customer_service)
 
 
 @pytest.fixture()
@@ -84,6 +85,28 @@ def test_create_lead_correctly_raises_invalid_data(
     lead_command_use_case: LeadCommandUseCase,
     data: LeadCreateModel,
 ) -> None:
+    with pytest.raises(InvalidData):
+        lead_command_use_case.create(lead_data=data, creator_id="salesman-1")
+
+    lead_uow.__enter__().repository.create.assert_not_called()
+
+
+def test_create_lead_with_invalid_customer_id_should_fail(
+    lead_uow: LeadUnitOfWork,
+    lead_command_use_case: LeadCommandUseCase,
+) -> None:
+    lead_command_use_case.customer_service.customer_exists.return_value = False
+    data = LeadCreateModel(
+        customer_id="customer-1",
+        source="ads",
+        contact_data=ContactDataCreateUpdateModel(
+            first_name="John",
+            last_name="Doe",
+            phone="+48123123123",
+            email="test@example.com",
+        ),
+    )
+
     with pytest.raises(InvalidData):
         lead_command_use_case.create(lead_data=data, creator_id="salesman-1")
 
@@ -169,7 +192,11 @@ def test_calling_method_with_wrong_lead_id_should_fail(
     lead_id = "invalid id"
     data = MagicMock()
     lead_uow.__enter__().repository.get.return_value = None
-    kwargs = {"lead_id": lead_id, data_field_name: data, editor_field_name: "salesman-1"}
+    kwargs = {
+        "lead_id": lead_id,
+        data_field_name: data,
+        editor_field_name: "salesman-1",
+    }
 
     with pytest.raises(ObjectDoesNotExist):
         getattr(lead_command_use_case, method_name)(**kwargs)

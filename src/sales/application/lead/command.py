@@ -3,6 +3,7 @@ from uuid import uuid4
 from building_blocks.application.command import BaseUnitOfWork
 from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
 from building_blocks.domain.exceptions import InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
+from sales.application.acl import ICustomerService
 from sales.application.lead.command_model import (
     AssignmentUpdateModel,
     ContactDataCreateUpdateModel,
@@ -29,11 +30,14 @@ class LeadUnitOfWork(BaseUnitOfWork):
 
 
 class LeadCommandUseCase:
-    def __init__(self, lead_uow: LeadUnitOfWork) -> None:
+    def __init__(self, lead_uow: LeadUnitOfWork, customer_service: ICustomerService) -> None:
         self.lead_uow = lead_uow
+        self.customer_service = customer_service
 
     def create(self, lead_data: LeadCreateModel, creator_id: str) -> LeadReadModel:
-        # sprawdzać czy klient istnieje
+        if not self.customer_service.customer_exists(lead_data.customer_id):
+            raise InvalidData(f"Customer with id={lead_data.customer_id} does not exist")
+
         lead_id = str(uuid4())
         source = self._create_source(lead_data.source)
         contact_data = self._create_contact_data(lead_data.contact_data)

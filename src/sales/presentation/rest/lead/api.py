@@ -4,6 +4,9 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from customer_management.infrastructure.file import config as customer_file_config
+from customer_management.infrastructure.file.customer.command import CustomerFileUnitOfWork
+from sales.application.acl import CustomerService
 from sales.application.lead.command import LeadCommandUseCase
 from sales.application.lead.command_model import AssignmentUpdateModel, LeadCreateModel, LeadUpdateModel
 from sales.application.lead.query import LeadQueryUseCase
@@ -23,8 +26,10 @@ def get_lead_query_use_case() -> LeadQueryUseCase:
 
 
 def get_lead_command_use_case() -> LeadCommandUseCase:
+    customer_uow = CustomerFileUnitOfWork(customer_file_config.CUSTOMERS_FILE_PATH)
+    customer_service = CustomerService(customer_uow=customer_uow)
     lead_uow = LeadFileUnitOfWork(file_config.LEADS_FILE_PATH)
-    return LeadCommandUseCase(lead_uow)
+    return LeadCommandUseCase(lead_uow=lead_uow, customer_service=customer_service)
 
 
 @router.get(

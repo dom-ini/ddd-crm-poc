@@ -1,84 +1,14 @@
-from collections.abc import Iterator, Sequence
-from uuid import uuid4
+from collections.abc import Sequence
 
 import pytest
 
 from building_blocks.application.filters import FilterCondition, FilterConditionType
-from sales.application.lead.command import LeadCommandUseCase
-from sales.application.lead.command_model import AssignmentUpdateModel, ContactDataCreateUpdateModel, LeadCreateModel
 from sales.application.lead.query_model import LeadReadModel
-from sales.application.notes.command_model import NoteCreateModel
-from sales.infrastructure.file.lead.command import LeadFileUnitOfWork
+from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
 from sales.infrastructure.file.lead.query_service import LeadFileQueryService
-from tests.infrastructure.file.conftest import TEST_DATA_FOLDER
+from tests.infrastructure.file.conftest import LEAD_TEST_DATA_PATH
 
 pytestmark = pytest.mark.integration
-
-LEADS_QUERY_DB_FILE = "test-query-leads"
-TEST_DATA_PATH = TEST_DATA_FOLDER / LEADS_QUERY_DB_FILE
-
-
-@pytest.fixture(scope="session")
-def command_use_case() -> LeadCommandUseCase:
-    uow = LeadFileUnitOfWork(file_path=TEST_DATA_PATH)
-    command_use_case = LeadCommandUseCase(lead_uow=uow)
-    return command_use_case
-
-
-@pytest.fixture(scope="session")
-def new_salesman_id() -> str:
-    return str(uuid4())
-
-
-@pytest.fixture(scope="session", autouse=True)
-def lead_1(
-    command_use_case: LeadCommandUseCase,
-    salesman_1_id: str,
-    note_content: str,
-    new_salesman_id: str,
-) -> LeadReadModel:
-    contact_data = ContactDataCreateUpdateModel(
-        first_name="Jan",
-        last_name="Kowalski",
-        phone="+48123456789",
-        email="jan.kowalski@example.com",
-    )
-    lead_data = LeadCreateModel(customer_id=str(uuid4()), source="ads", contact_data=contact_data)
-    lead = command_use_case.create(lead_data=lead_data, creator_id=salesman_1_id)
-
-    command_use_case.update_assignment(
-        lead_id=lead.id,
-        requestor_id=lead.created_by_salesman_id,
-        assignment_data=AssignmentUpdateModel(new_salesman_id=new_salesman_id),
-    )
-    command_use_case.update_note(
-        lead_id=lead.id,
-        editor_id=new_salesman_id,
-        note_data=NoteCreateModel(content=note_content),
-    )
-
-    return lead
-
-
-@pytest.fixture(scope="session", autouse=True)
-def lead_2(command_use_case: LeadCommandUseCase, salesman_1_id: str) -> LeadReadModel:
-    contact_data = ContactDataCreateUpdateModel(
-        first_name="Jan",
-        last_name="Nowak",
-        phone="+48123123456",
-        email="piotr.nowak@example.com",
-    )
-    lead_data = LeadCreateModel(customer_id=str(uuid4()), source="cold call", contact_data=contact_data)
-    return command_use_case.create(lead_data=lead_data, creator_id=salesman_1_id)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def lead_3(command_use_case: LeadCommandUseCase, salesman_2_id: str) -> LeadReadModel:
-    contact_data = ContactDataCreateUpdateModel(
-        first_name="Paweł", last_name="Kowalczyk", email="pawel.kowalczyk@example.com"
-    )
-    lead_data = LeadCreateModel(customer_id=str(uuid4()), source="website", contact_data=contact_data)
-    return command_use_case.create(lead_data=lead_data, creator_id=salesman_2_id)
 
 
 @pytest.fixture()
@@ -86,17 +16,9 @@ def all_leads(lead_1: LeadReadModel, lead_2: LeadReadModel, lead_3: LeadReadMode
     return (lead_1, lead_2, lead_3)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def clean_data() -> Iterator[None]:
-    yield
-    for file in TEST_DATA_FOLDER.iterdir():
-        if file.name.startswith(LEADS_QUERY_DB_FILE):
-            file.unlink()
-
-
 @pytest.fixture()
 def query_service() -> LeadFileQueryService:
-    return LeadFileQueryService(leads_file_path=TEST_DATA_PATH)
+    return LeadFileQueryService(leads_file_path=LEAD_TEST_DATA_PATH)
 
 
 def test_get_lead(query_service: LeadFileQueryService, lead_1: LeadReadModel) -> None:
@@ -129,12 +51,14 @@ def test_get_filtered(query_service: LeadFileQueryService, lead_1: LeadReadModel
 
 
 def test_get_assignment_history(
-    query_service: LeadFileQueryService, lead_1: LeadReadModel, new_salesman_id: str
+    query_service: LeadFileQueryService,
+    lead_1: LeadReadModel,
+    representative_3: SalesRepresentativeReadModel,
 ) -> None:
     assignments = query_service.get_assignment_history(lead_id=lead_1.id)
 
     assert assignments is not None
-    assert assignments[0].new_owner_id == new_salesman_id
+    assert assignments[0].new_owner_id == representative_3.id
 
 
 def test_get_notes(query_service: LeadFileQueryService, lead_1: LeadReadModel, note_content: str) -> None:

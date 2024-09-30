@@ -4,6 +4,9 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from customer_management.infrastructure.file import config as customer_file_config
+from customer_management.infrastructure.file.customer.command import CustomerFileUnitOfWork
+from sales.application.acl import CustomerService
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
 from sales.application.opportunity.command import OpportunityCommandUseCase
@@ -27,8 +30,10 @@ def get_op_query_use_case() -> OpportunityQueryUseCase:
 
 
 def get_op_command_use_case() -> OpportunityCommandUseCase:
+    customer_uow = CustomerFileUnitOfWork(customer_file_config.CUSTOMERS_FILE_PATH)
+    customer_service = CustomerService(customer_uow=customer_uow)
     op_uow = OpportunityFileUnitOfWork(file_config.OPPORTUNITIES_FILE_PATH)
-    return OpportunityCommandUseCase(op_uow)
+    return OpportunityCommandUseCase(opportunity_uow=op_uow, customer_service=customer_service)
 
 
 @router.get("/", response_model=list[OpportunityReadModel])

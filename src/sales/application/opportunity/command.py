@@ -6,6 +6,7 @@ from building_blocks.application.command import BaseUnitOfWork
 from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
 from building_blocks.domain.exceptions import ValueNotAllowed
 from building_blocks.domain.value_object import ValueObject
+from sales.application.acl import ICustomerService
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
 from sales.application.opportunity.command_model import (
@@ -38,10 +39,16 @@ class OpportunityUnitOfWork(BaseUnitOfWork):
 
 
 class OpportunityCommandUseCase:
-    def __init__(self, opportunity_uow: OpportunityUnitOfWork) -> None:
+    def __init__(self, opportunity_uow: OpportunityUnitOfWork, customer_service: ICustomerService) -> None:
         self.opportunity_uow = opportunity_uow
+        self.customer_service = customer_service
 
     def create(self, data: OpportunityCreateModel, creator_id: str) -> OpportunityReadModel:
+        print(data)
+        print(data.customer_id)
+        if not self.customer_service.customer_exists(data.customer_id):
+            raise InvalidData(f"Customer with id={data.customer_id} does not exist")
+
         opportunity_id = str(uuid4())
         source = self._create_source(data.source)
         stage = self._create_stage()

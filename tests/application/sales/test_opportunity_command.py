@@ -53,7 +53,8 @@ def opportunity_uow(
 def opportunity_command_use_case(
     opportunity_uow: OpportunityUnitOfWork,
 ) -> OpportunityCommandUseCase:
-    return OpportunityCommandUseCase(opportunity_uow=opportunity_uow)
+    customer_service = MagicMock()
+    return OpportunityCommandUseCase(opportunity_uow=opportunity_uow, customer_service=customer_service)
 
 
 @pytest.fixture()
@@ -91,6 +92,24 @@ def test_create_opportunity_correctly_raises_invalid_data(
 ) -> None:
     with pytest.raises(InvalidData):
         opportunity_command_use_case.create(creator_id="salesman-1", data=data)
+
+    opportunity_uow.__enter__().repository.create.assert_not_called()
+
+
+def test_create_opportunity_with_invalid_customer_id_should_fail(
+    opportunity_uow: OpportunityUnitOfWork,
+    opportunity_command_use_case: OpportunityCommandUseCase,
+) -> None:
+    opportunity_command_use_case.customer_service.customer_exists.return_value = False
+    data = OpportunityCreateModel(
+        customer_id="customer_1",
+        source="ads",
+        priority="medium",
+        offer=[valid_offer_item_example],
+    )
+
+    with pytest.raises(InvalidData):
+        opportunity_command_use_case.create(data=data, creator_id="salesman-1")
 
     opportunity_uow.__enter__().repository.create.assert_not_called()
 
