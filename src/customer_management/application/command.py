@@ -4,7 +4,7 @@ from uuid import uuid4
 from building_blocks.application.command import BaseUnitOfWork
 from building_blocks.application.exceptions import ConfictingAction, InvalidData, ObjectDoesNotExist, UnauthorizedAction
 from building_blocks.domain.exceptions import DuplicateEntry, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
-from customer_management.application.acl import ISalesRepresentativeService
+from customer_management.application.acl import IOpportunityService, ISalesRepresentativeService
 from customer_management.application.command_model import (
     AddressDataCreateUpdateModel,
     CompanyInfoCreateUpdateModel,
@@ -22,12 +22,14 @@ from customer_management.domain.exceptions import (
     ContactPersonDoesNotExist,
     CustomerAlreadyArchived,
     CustomerAlreadyConverted,
+    CustomerStillHasNotClosedOpportunities,
     NotEnoughContactPersons,
     NotEnoughPreferredContactMethods,
     OnlyRelationManagerCanChangeStatus,
     OnlyRelationManagerCanModifyCustomerData,
 )
 from customer_management.domain.repositories.customer import CustomerRepository
+from customer_management.domain.services.customer import ensure_all_opportunities_are_closed
 from customer_management.domain.value_objects.address import Address
 from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.company_segment import CompanySegment
@@ -46,9 +48,11 @@ class CustomerCommandUseCase:
         self,
         customer_uow: CustomerUnitOfWork,
         sales_rep_service: ISalesRepresentativeService,
+        opportunity_service: IOpportunityService,
     ) -> None:
         self.customer_uow = customer_uow
         self.sales_rep_service = sales_rep_service
+        self.opportunity_service = opportunity_service
 
     def create(self, customer_data: CustomerCreateModel) -> CustomerReadModel:
         self._verify_that_salesman_exists(customer_data.relation_manager_id)
@@ -97,6 +101,8 @@ class CustomerCommandUseCase:
             uow.repository.update(customer)
 
     def archive(self, customer_id: str, requestor_id: str) -> None:
+        self._enforce_archive_business_rules(customer_id=customer_id)
+
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             try:
@@ -180,6 +186,13 @@ class CustomerCommandUseCase:
         if customer is None:
             raise ObjectDoesNotExist(customer_id)
         return customer
+
+    def _enforce_archive_business_rules(self, customer_id: str) -> None:
+        opportunities = self.opportunity_service.get_opportunities_by_customer(customer_id=customer_id)
+        try:
+            ensure_all_opportunities_are_closed(opportunities)
+        except CustomerStillHasNotClosedOpportunities as e:
+            raise InvalidData(e.message) from e
 
     def _verify_that_salesman_exists(self, salesman_id: str) -> None:
         if not self.sales_rep_service.salesman_exists(salesman_id):

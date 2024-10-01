@@ -100,6 +100,10 @@ class Opportunity(AggregateRoot):
             self.priority = priority
 
     @property
+    def stage_name(self) -> str:
+        return self.stage.name
+
+    @property
     def created_at(self) -> dt.datetime:
         return self._created_at
 

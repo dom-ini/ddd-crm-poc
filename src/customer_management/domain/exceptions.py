@@ -37,3 +37,7 @@ class OnlyRelationManagerCanChangeStatus(DomainException):
 
 class OnlyRelationManagerCanModifyCustomerData(DomainException):
     message = "Only relation manager can modify customer data"
+
+
+class CustomerStillHasNotClosedOpportunities(DomainException):
+    message = "Customer still has not closed opportunities"

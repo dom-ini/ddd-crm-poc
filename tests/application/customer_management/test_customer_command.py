@@ -59,7 +59,12 @@ def customer_command_use_case(
     customer_uow: CustomerUnitOfWork,
 ) -> CustomerCommandUseCase:
     salesman_service = MagicMock()
-    return CustomerCommandUseCase(customer_uow=customer_uow, sales_rep_service=salesman_service)
+    opportunity_service = MagicMock()
+    return CustomerCommandUseCase(
+        customer_uow=customer_uow,
+        sales_rep_service=salesman_service,
+        opportunity_service=opportunity_service,
+    )
 
 
 @pytest.fixture()
@@ -445,3 +450,18 @@ def test_convert_or_archive_by_non_relation_manager_should_fail(
 
     with pytest.raises(UnauthorizedAction):
         getattr(customer_command_use_case, method_name)(customer_id="customer-1", requestor_id="salesman-1")
+
+
+def test_archive_customer_with_not_closed_opportunities_should_fail(
+    customer_uow: CustomerUnitOfWork,
+    customer_command_use_case: CustomerCommandUseCase,
+    mock_customer: MagicMock,
+) -> None:
+    mock_not_closed_opportunity = MagicMock(stage_name="initial")
+    customer_uow.__enter__().repository.get.return_value = mock_customer
+    customer_command_use_case.opportunity_service.get_opportunities_by_customer.return_value = (
+        mock_not_closed_opportunity,
+    )
+
+    with pytest.raises(InvalidData):
+        customer_command_use_case.archive(customer_id="customer-1", requestor_id="salesman-1")

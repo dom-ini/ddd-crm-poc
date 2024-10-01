@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from customer_management.application.acl import SalesRepresentativeService
+from customer_management.application.acl import OpportunityService, SalesRepresentativeService
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
     AddressDataCreateUpdateModel,
@@ -57,6 +57,11 @@ def sr_uow() -> SalesRepresentativeFileUnitOfWork:
 
 
 @pytest.fixture(scope="session")
+def opportunity_uow() -> OpportunityFileUnitOfWork:
+    return OpportunityFileUnitOfWork(OPPORTUNITY_TEST_DATA_PATH)
+
+
+@pytest.fixture(scope="session")
 def sr_command_use_case(
     sr_uow: SalesRepresentativeFileUnitOfWork,
 ) -> SalesRepresentativeCommandUseCase:
@@ -75,11 +80,14 @@ def lead_command_use_case(
 
 @pytest.fixture(scope="session")
 def opportunity_command_use_case(
-    customer_service: ICustomerService, sr_uow: SalesRepresentativeFileUnitOfWork
+    customer_service: ICustomerService,
+    sr_uow: SalesRepresentativeFileUnitOfWork,
+    opportunity_uow: OpportunityFileUnitOfWork,
 ) -> OpportunityCommandUseCase:
-    uow = OpportunityFileUnitOfWork(OPPORTUNITY_TEST_DATA_PATH)
     command_use_case = OpportunityCommandUseCase(
-        opportunity_uow=uow, salesman_uow=sr_uow, customer_service=customer_service
+        opportunity_uow=opportunity_uow,
+        salesman_uow=sr_uow,
+        customer_service=customer_service,
     )
     return command_use_case
 
@@ -87,10 +95,16 @@ def opportunity_command_use_case(
 @pytest.fixture(scope="session")
 def customer_command_use_case(
     sr_uow: SalesRepresentativeFileUnitOfWork,
+    opportunity_uow: OpportunityFileUnitOfWork,
 ) -> CustomerCommandUseCase:
     sales_rep_service = SalesRepresentativeService(salesman_uow=sr_uow)
+    opportunity_service = OpportunityService(opportunity_uow=opportunity_uow)
     uow = CustomerFileUnitOfWork(CUSTOMER_TEST_DATA_PATH)
-    command_use_case = CustomerCommandUseCase(customer_uow=uow, sales_rep_service=sales_rep_service)
+    command_use_case = CustomerCommandUseCase(
+        customer_uow=uow,
+        sales_rep_service=sales_rep_service,
+        opportunity_service=opportunity_service,
+    )
     return command_use_case
 
 

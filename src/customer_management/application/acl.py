@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import Protocol, Self, TypeVar
 
 SalesRepT = TypeVar("SalesRepT")
@@ -26,3 +27,31 @@ class SalesRepresentativeService(ISalesRepresentativeService):
     def salesman_exists(self, salesman_id: str) -> bool:
         with self.salesman_uow as uow:
             return bool(uow.repository.get(salesman_id))
+
+
+class Opportunity(Protocol):
+    stage_name: str
+
+
+class OpportunityRepository(Protocol):
+    def get_all_by_customer(self, customer_id: str) -> Sequence[Opportunity]: ...
+
+
+class OpportunityUnitOfWork(Protocol):
+    repository: OpportunityRepository
+
+    def __enter__(self) -> Self: ...
+
+
+class IOpportunityService(ABC):
+    def __init__(self, opportunity_uow: OpportunityUnitOfWork) -> None:
+        self.opportunity_uow = opportunity_uow
+
+    @abstractmethod
+    def get_opportunities_by_customer(self, customer_id: str) -> Sequence[Opportunity]: ...
+
+
+class OpportunityService(IOpportunityService):
+    def get_opportunities_by_customer(self, customer_id: str) -> Sequence[Opportunity]:
+        with self.opportunity_uow as uow:
+            return uow.repository.get_all_by_customer(customer_id=customer_id)
