@@ -8,16 +8,12 @@ from building_blocks.infrastructure.file.io import get_read_db
 from customer_management.application.query_model import ContactPersonReadModel, CustomerReadModel
 from customer_management.application.query_service import CustomerQueryService
 from customer_management.domain.entities.customer import Customer
-from customer_management.infrastructure.file import config
 
 
 class CustomerFileQueryService(CustomerQueryService):
     FilterServiceType = FileFilterService[Customer]
 
-    def __init__(
-        self,
-        customers_file_path: Path = config.CUSTOMERS_FILE_PATH,
-    ) -> None:
+    def __init__(self, customers_file_path: Path) -> None:
         self._file_path = customers_file_path
         self._filter_service = self.FilterServiceType()
 

@@ -5,13 +5,12 @@ from building_blocks.infrastructure.file.io import get_read_db
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
 from sales.application.sales_representative.query_service import SalesRepresentativeQueryService
 from sales.domain.entities.sales_representative import SalesRepresentative
-from sales.infrastructure.file import config
 
 
 class SalesRepresentativeFileQueryService(SalesRepresentativeQueryService):
     def __init__(
         self,
-        sr_file_path: Path = config.SALES_REPR_FILE_PATH,
+        sr_file_path: Path,
     ) -> None:
         self._file_path = sr_file_path
 

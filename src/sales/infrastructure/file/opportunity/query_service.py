@@ -8,16 +8,12 @@ from sales.application.notes.query_model import NoteReadModel
 from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
 from sales.application.opportunity.query_service import OpportunityQueryService
 from sales.domain.entities.opportunity import Opportunity
-from sales.infrastructure.file import config
 
 
 class OpportunityFileQueryService(OpportunityQueryService):
     FilterServiceType = FileFilterService[Opportunity]
 
-    def __init__(
-        self,
-        opportunities_file_path: Path = config.OPPORTUNITIES_FILE_PATH,
-    ) -> None:
+    def __init__(self, opportunities_file_path: Path) -> None:
         self._file_path = opportunities_file_path
         self._filter_service = self.FilterServiceType()
 

@@ -8,7 +8,6 @@ from sales.application.lead.query_model import AssignmentReadModel, LeadReadMode
 from sales.application.lead.query_service import LeadQueryService
 from sales.application.notes.query_model import NoteReadModel
 from sales.domain.entities.lead import Lead
-from sales.infrastructure.file import config
 
 
 class LeadFileQueryService(LeadQueryService):
@@ -16,7 +15,7 @@ class LeadFileQueryService(LeadQueryService):
 
     def __init__(
         self,
-        leads_file_path: Path = config.LEADS_FILE_PATH,
+        leads_file_path: Path,
     ) -> None:
         self._file_path = leads_file_path
         self._filter_service = self.FilterServiceType()
