@@ -1,4 +1,5 @@
 import datetime as dt
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -6,11 +7,24 @@ from building_blocks.domain.exceptions import InvalidEmailAddress, InvalidPhoneN
 from sales.domain.entities.lead import Lead
 from sales.domain.entities.lead_assignments import LeadAssignments
 from sales.domain.entities.notes import Notes
-from sales.domain.exceptions import OnlyOwnerCanEditNotes, OnlyOwnerCanModifyLeadData, UnauthorizedLeadOwnerChange
+from sales.domain.exceptions import (
+    CanCreateOnlyOneLeadPerCustomer,
+    LeadCanBeCreatedOnlyForInitialCustomer,
+    OnlyOwnerCanEditNotes,
+    OnlyOwnerCanModifyLeadData,
+    UnauthorizedLeadOwnerChange,
+)
+from sales.domain.service.lead import ensure_customer_has_initial_status, ensure_one_lead_per_customer
+from sales.domain.service.shared import SalesCustomerStatusName
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.contact_data import ContactData
 from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
 from sales.domain.value_objects.note import Note
+
+
+@pytest.fixture()
+def lead_repo() -> MagicMock:
+    return MagicMock()
 
 
 @pytest.fixture
@@ -230,3 +244,26 @@ def test_assignment_history_is_properly_saved(lead: Lead) -> None:
     assert len(lead.assignment_history) == 2
     assert lead.assignment_history[0].new_owner_id == "salesman_1"
     assert lead.assignment_history[1].new_owner_id == "salesman_2"
+
+
+def test_ensure_one_lead_per_customer_should_not_fail_when_lead_does_not_exist(lead_repo: MagicMock) -> None:
+    lead_repo.get_for_customer.return_value = None
+
+    ensure_one_lead_per_customer(lead_repo=lead_repo, customer_id="customer id")
+
+
+def test_ensure_one_lead_per_customer_should_fail_if_lead_already_exists(lead_repo: MagicMock) -> None:
+    lead_repo.get_for_customer.return_value = MagicMock()
+
+    with pytest.raises(CanCreateOnlyOneLeadPerCustomer):
+        ensure_one_lead_per_customer(lead_repo=lead_repo, customer_id="customer id")
+
+
+def test_ensure_customer_has_initial_status_should_not_fail_if_customer_has_initial_status() -> None:
+    ensure_customer_has_initial_status(SalesCustomerStatusName.INITIAL)
+
+
+@pytest.mark.parametrize("status", [SalesCustomerStatusName.CONVERTED, SalesCustomerStatusName.ARCHIVED])
+def test_ensure_customer_has_initial_status_should_fail_if_customer_has_other_status(status: str) -> None:
+    with pytest.raises(LeadCanBeCreatedOnlyForInitialCustomer):
+        ensure_customer_has_initial_status(status)

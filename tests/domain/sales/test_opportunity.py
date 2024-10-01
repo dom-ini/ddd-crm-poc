@@ -11,7 +11,10 @@ from sales.domain.exceptions import (
     OnlyOwnerCanEditNotes,
     OnlyOwnerCanModifyOffer,
     OnlyOwnerCanModifyOpportunityData,
+    OpportunityCanBeCreatedOnlyForConvertedCustomer,
 )
+from sales.domain.service.opportunity import ensure_customer_has_converted_status
+from sales.domain.service.shared import SalesCustomerStatusName
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.money.currency import Currency
 from sales.domain.value_objects.money.money import Money
@@ -212,3 +215,15 @@ def test_modify_offer_by_non_owner_should_fail(opportunity: Opportunity, offer_i
     new_offer = (offer_item, offer_item)
     with pytest.raises(OnlyOwnerCanModifyOffer):
         opportunity.modify_offer(new_offer=new_offer, editor_id="salesman_2")
+
+
+def test_ensure_customer_has_converted_status_should_not_fail_if_customer_has_converted_status() -> None:
+    ensure_customer_has_converted_status(SalesCustomerStatusName.CONVERTED)
+
+
+@pytest.mark.parametrize("status", [SalesCustomerStatusName.INITIAL, SalesCustomerStatusName.ARCHIVED])
+def test_ensure_customer_has_converted_status_should_fail_if_customer_has_other_status(
+    status: str,
+) -> None:
+    with pytest.raises(OpportunityCanBeCreatedOnlyForConvertedCustomer):
+        ensure_customer_has_converted_status(status)

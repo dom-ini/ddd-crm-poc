@@ -1,3 +1,6 @@
+from collections.abc import Sequence
+from unittest.mock import MagicMock
+
 import pytest
 
 from building_blocks.domain.exceptions import DuplicateEntry, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
@@ -9,11 +12,13 @@ from customer_management.domain.exceptions import (
     ContactPersonDoesNotExist,
     CustomerAlreadyArchived,
     CustomerAlreadyConverted,
+    CustomerStillHasNotClosedOpportunities,
     NotEnoughContactPersons,
     NotEnoughPreferredContactMethods,
     OnlyRelationManagerCanChangeStatus,
     OnlyRelationManagerCanModifyCustomerData,
 )
+from customer_management.domain.services.customer import ensure_all_opportunities_are_closed
 from customer_management.domain.value_objects.address import Address
 from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.company_segment import CompanySegment
@@ -358,7 +363,8 @@ def test_update_contact_person_with_wrong_id_should_fail(
 ) -> None:
     with pytest.raises(ContactPersonDoesNotExist):
         customer_with_contact_persons.update_contact_person(
-            editor_id=customer_with_contact_persons.relation_manager_id, contact_person_id="invalid id"
+            editor_id=customer_with_contact_persons.relation_manager_id,
+            contact_person_id="invalid id",
         )
 
 
@@ -410,7 +416,8 @@ def test_create_or_update_contact_person_by_non_relation_manager_should_fail(
 def test_remove_contact_person(customer_with_contact_persons: Customer) -> None:
     person_id = customer_with_contact_persons.contact_persons[0].id
     customer_with_contact_persons.remove_contact_person(
-        id_to_remove=person_id, editor_id=customer_with_contact_persons.relation_manager_id
+        id_to_remove=person_id,
+        editor_id=customer_with_contact_persons.relation_manager_id,
     )
 
     assert len(customer_with_contact_persons.contact_persons) == 0
@@ -421,11 +428,41 @@ def test_remove_contact_person_with_wrong_id_should_fail(
 ) -> None:
     with pytest.raises(ContactPersonDoesNotExist):
         customer_with_contact_persons.remove_contact_person(
-            id_to_remove="invalid id", editor_id=customer_with_contact_persons.relation_manager_id
+            id_to_remove="invalid id",
+            editor_id=customer_with_contact_persons.relation_manager_id,
         )
 
 
-def test_remove_contact_person_by_non_relation_manager_should_fail(customer_with_contact_persons: Customer) -> None:
+def test_remove_contact_person_by_non_relation_manager_should_fail(
+    customer_with_contact_persons: Customer,
+) -> None:
     person_id = customer_with_contact_persons.contact_persons[0].id
     with pytest.raises(OnlyRelationManagerCanModifyCustomerData):
         customer_with_contact_persons.remove_contact_person(editor_id="non manager", id_to_remove=person_id)
+
+
+@pytest.mark.parametrize(
+    "opportunities",
+    [
+        tuple(),
+        (MagicMock(stage_name="closed-won"), MagicMock(stage_name="closed-lost")),
+    ],
+)
+def test_ensure_all_opportunities_are_closed_should_not_fail_if_does_not_have_open_opportunities(
+    opportunities: Sequence,
+) -> None:
+    ensure_all_opportunities_are_closed(opportunities)
+
+
+@pytest.mark.parametrize(
+    "opportunities",
+    [
+        (MagicMock(stage_name="closed-won"), MagicMock(stage_name="other")),
+        (MagicMock(stage_name="other"),),
+    ],
+)
+def test_ensure_all_opportunities_are_closed_should_fail_if_has_open_opportunities(
+    opportunities: Sequence,
+) -> None:
+    with pytest.raises(CustomerStillHasNotClosedOpportunities):
+        ensure_all_opportunities_are_closed(opportunities)
