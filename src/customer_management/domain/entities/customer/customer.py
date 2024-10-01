@@ -74,8 +74,8 @@ class Customer(AggregateRoot):
         return read_only_contact_persons
 
     @property
-    def status(self) -> CustomerStatus:
-        return self._status
+    def status(self) -> str:
+        return self._status.name
 
     @property
     def relation_manager_id(self) -> str:

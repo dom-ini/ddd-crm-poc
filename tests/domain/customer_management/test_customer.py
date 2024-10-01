@@ -19,12 +19,7 @@ from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.company_segment import CompanySegment
 from customer_management.domain.value_objects.contact_method import ContactMethod
 from customer_management.domain.value_objects.country import Country
-from customer_management.domain.value_objects.customer_status import (
-    ArchivedStatus,
-    ConvertedStatus,
-    CustomerStatus,
-    InitialStatus,
-)
+from customer_management.domain.value_objects.customer_status import CustomerStatus, CustomerStatusName, InitialStatus
 from customer_management.domain.value_objects.industry import Industry
 from customer_management.domain.value_objects.language import Language
 
@@ -138,7 +133,6 @@ def test_customer_creation(customer: Customer, company_info: CompanyInfo) -> Non
     assert customer.company_info == company_info
     assert customer.relation_manager_id == "salesman_1"
     assert len(customer.contact_persons) == 0
-    assert isinstance(customer.status, CustomerStatus)
 
 
 def test_customer_reconstitution(
@@ -157,11 +151,11 @@ def test_customer_reconstitution(
     assert customer.relation_manager_id == "salesman_1"
     assert customer.company_info == company_info
     assert customer.contact_persons[0].id == contact_person.id
-    assert isinstance(customer.status, CustomerStatus)
+    assert customer.status == initial_status.name
 
 
-def test_newly_created_customer_should_have_initial_status(customer: Customer) -> None:
-    assert isinstance(customer.status, InitialStatus)
+def test_newly_created_customer_should_have_initial_status(customer: Customer, initial_status: CustomerStatus) -> None:
+    assert customer.status == CustomerStatusName.INITIAL
 
 
 def test_update_customer(customer: Customer, company_info_2: CompanyInfo) -> None:
@@ -215,7 +209,7 @@ def test_convert_customer_should_change_status_to_converted(
 ) -> None:
     customer_with_contact_persons.convert(customer_with_contact_persons.relation_manager_id)
 
-    assert isinstance(customer_with_contact_persons.status, ConvertedStatus)
+    assert customer_with_contact_persons.status == CustomerStatusName.CONVERTED
 
 
 def test_convert_already_converted_customer_should_fail(
@@ -241,7 +235,7 @@ def test_convert_archived_customer_should_fail(
 def test_archive_customer_should_change_status_to_archived(customer: Customer) -> None:
     customer.archive(customer.relation_manager_id)
 
-    assert isinstance(customer.status, ArchivedStatus)
+    assert customer.status == CustomerStatusName.ARCHIVED
 
 
 def test_archive_already_archived_customer_should_fail(customer: Customer) -> None:

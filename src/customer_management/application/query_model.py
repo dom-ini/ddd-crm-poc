@@ -65,7 +65,7 @@ class CustomerReadModel(BaseReadModel[Customer]):
         return cls(
             id=entity.id,
             relation_manager_id=entity.relation_manager_id,
-            status=entity.status.name,
+            status=entity.status,
             company_info=CompanyInfoReadModel.from_domain(entity.company_info),
         )
 
