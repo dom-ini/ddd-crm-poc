@@ -17,12 +17,17 @@ class FileFilterService[Entity]:
     def _apply_single_filter(self, condition_type: str) -> Callable[[Entity, str, Any], bool]:
         if condition_type == FilterConditionType.EQUALS:
             return self._equals
+        if condition_type == FilterConditionType.IEQUALS:
+            return self._iequals
         if condition_type == FilterConditionType.SEARCH:
             return self._icontains
         raise InvalidFilterType
 
     def _equals(self, entity: Any, field: str, value: Any) -> bool:
-        return attrgetter(field)(entity) == value
+        return value == attrgetter(field)(entity)
+
+    def _iequals(self, entity: Any, field: str, value: Any) -> bool:
+        return value.lower() == attrgetter(field)(entity).lower()
 
     def _icontains(self, entity: Any, field: str, value: Any) -> bool:
         return value.lower().replace(" ", "") in attrgetter(field)(entity).lower().replace(" ", "")

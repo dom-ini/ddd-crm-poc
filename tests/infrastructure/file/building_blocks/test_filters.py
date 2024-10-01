@@ -49,6 +49,30 @@ def test_filter_equals_with_no_match_should_return_false(filter_service: FilterS
     assert not filter_service.apply_filters(entity=model, filters=filters)
 
 
+def test_filter_iequals_with_match_should_return_true(filter_service: FilterService, model: Model) -> None:
+    filters = [
+        FilterCondition(
+            field="field_1",
+            value="SOME STRING",
+            condition_type=FilterConditionType.IEQUALS,
+        )
+    ]
+
+    assert filter_service.apply_filters(entity=model, filters=filters)
+
+
+def test_filter_iequals_with_no_match_should_return_false(filter_service: FilterService, model: Model) -> None:
+    filters = [
+        FilterCondition(
+            field="field_1",
+            value="no match",
+            condition_type=FilterConditionType.IEQUALS,
+        )
+    ]
+
+    assert not filter_service.apply_filters(entity=model, filters=filters)
+
+
 def test_filter_search_with_match_should_return_true(filter_service: FilterService, model: Model) -> None:
     filters = [
         FilterCondition(
@@ -79,6 +103,11 @@ def test_multiple_filters_with_all_matching_should_return_true(filter_service: F
             field="field_1",
             value="some string",
             condition_type=FilterConditionType.EQUALS,
+        ),
+        FilterCondition(
+            field="field_1",
+            value="SOME STRING",
+            condition_type=FilterConditionType.IEQUALS,
         ),
         FilterCondition(
             field="field_2",

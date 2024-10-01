@@ -38,7 +38,7 @@ class CustomerQueryUseCase:
             FilterCondition(
                 field="status.name",
                 value=status,
-                condition_type=FilterConditionType.EQUALS,
+                condition_type=FilterConditionType.IEQUALS,
             ),
             FilterCondition(
                 field="company_info.name",

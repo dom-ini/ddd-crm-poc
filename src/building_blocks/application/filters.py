@@ -6,6 +6,7 @@ from attrs import define
 
 class FilterConditionType(str, Enum):
     EQUALS = "equals"
+    IEQUALS = "iequals"
     SEARCH = "search"
 
 
