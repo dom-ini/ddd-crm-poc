@@ -1,12 +1,9 @@
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
 from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
-from customer_management.infrastructure.file import config as customer_file_config
-from customer_management.infrastructure.file.customer.command import CustomerFileUnitOfWork
-from sales.application.acl import CustomerService
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
 from sales.application.opportunity.command import OpportunityCommandUseCase
@@ -17,27 +14,19 @@ from sales.application.opportunity.command_model import (
 )
 from sales.application.opportunity.query import OpportunityQueryUseCase
 from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
-from sales.infrastructure.file import config as file_config
-from sales.infrastructure.file.opportunity.command import OpportunityFileUnitOfWork
-from sales.infrastructure.file.opportunity.query_service import OpportunityFileQueryService
-from sales.infrastructure.file.sales_representative.command import SalesRepresentativeFileUnitOfWork
+from sales.presentation.container import get_container
 
 router = APIRouter(prefix="/opportunities", tags=["opportunities"])
 
 
-def get_op_query_use_case() -> OpportunityQueryUseCase:
-    op_query_service = OpportunityFileQueryService()
-    return OpportunityQueryUseCase(op_query_service)
+def get_op_query_use_case(request: Request) -> OpportunityQueryUseCase:
+    container = get_container(request)
+    return container.opportunity_query_use_case
 
 
-def get_op_command_use_case() -> OpportunityCommandUseCase:
-    customer_uow = CustomerFileUnitOfWork(customer_file_config.CUSTOMERS_FILE_PATH)
-    salesman_uow = SalesRepresentativeFileUnitOfWork(file_config.SALES_REPR_FILE_PATH)
-    customer_service = CustomerService(customer_uow=customer_uow)
-    op_uow = OpportunityFileUnitOfWork(file_config.OPPORTUNITIES_FILE_PATH)
-    return OpportunityCommandUseCase(
-        opportunity_uow=op_uow, salesman_uow=salesman_uow, customer_service=customer_service
-    )
+def get_op_command_use_case(request: Request) -> OpportunityCommandUseCase:
+    container = get_container(request)
+    return container.opportunity_command_use_case
 
 
 @router.get("/", response_model=list[OpportunityReadModel])

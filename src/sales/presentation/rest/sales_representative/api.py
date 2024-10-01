@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
 from building_blocks.application.exceptions import ObjectDoesNotExist, UnauthorizedAction
 from sales.application.sales_representative.command import SalesRepresentativeCommandUseCase
@@ -10,21 +10,19 @@ from sales.application.sales_representative.command_model import (
 )
 from sales.application.sales_representative.query import SalesRepresentativeQueryUseCase
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
-from sales.infrastructure.file import config as file_config
-from sales.infrastructure.file.sales_representative.command import SalesRepresentativeFileUnitOfWork
-from sales.infrastructure.file.sales_representative.query_service import SalesRepresentativeFileQueryService
+from sales.presentation.container import get_container
 
 router = APIRouter(prefix="/sales-representatives", tags=["sales representatives"])
 
 
-def get_sr_query_use_case() -> SalesRepresentativeQueryUseCase:
-    sr_query_service = SalesRepresentativeFileQueryService()
-    return SalesRepresentativeQueryUseCase(sr_query_service)
+def get_sr_query_use_case(request: Request) -> SalesRepresentativeQueryUseCase:
+    container = get_container(request)
+    return container.sr_query_use_case
 
 
-def get_sr_command_use_case() -> SalesRepresentativeCommandUseCase:
-    sr_uow = SalesRepresentativeFileUnitOfWork(file_config.SALES_REPR_FILE_PATH)
-    return SalesRepresentativeCommandUseCase(sr_uow)
+def get_sr_command_use_case(request: Request) -> SalesRepresentativeCommandUseCase:
+    container = get_container(request)
+    return container.sr_command_use_case
 
 
 @router.get("/", response_model=list[SalesRepresentativeReadModel])

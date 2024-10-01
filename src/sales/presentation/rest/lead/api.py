@@ -1,37 +1,28 @@
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
 from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
-from customer_management.infrastructure.file import config as customer_file_config
-from customer_management.infrastructure.file.customer.command import CustomerFileUnitOfWork
-from sales.application.acl import CustomerService
 from sales.application.lead.command import LeadCommandUseCase
 from sales.application.lead.command_model import AssignmentUpdateModel, LeadCreateModel, LeadUpdateModel
 from sales.application.lead.query import LeadQueryUseCase
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
-from sales.infrastructure.file import config as file_config
-from sales.infrastructure.file.lead.command import LeadFileUnitOfWork
-from sales.infrastructure.file.lead.query_service import LeadFileQueryService
-from sales.infrastructure.file.sales_representative.command import SalesRepresentativeFileUnitOfWork
+from sales.presentation.container import get_container
 
 router = APIRouter(prefix="/leads", tags=["leads"])
 
 
-def get_lead_query_use_case() -> LeadQueryUseCase:
-    lead_query_service = LeadFileQueryService()
-    return LeadQueryUseCase(lead_query_service)
+def get_lead_query_use_case(request: Request) -> LeadQueryUseCase:
+    container = get_container(request)
+    return container.lead_query_use_case
 
 
-def get_lead_command_use_case() -> LeadCommandUseCase:
-    customer_uow = CustomerFileUnitOfWork(customer_file_config.CUSTOMERS_FILE_PATH)
-    salesman_uow = SalesRepresentativeFileUnitOfWork(file_config.SALES_REPR_FILE_PATH)
-    customer_service = CustomerService(customer_uow=customer_uow)
-    lead_uow = LeadFileUnitOfWork(file_config.LEADS_FILE_PATH)
-    return LeadCommandUseCase(lead_uow=lead_uow, salesman_uow=salesman_uow, customer_service=customer_service)
+def get_lead_command_use_case(request: Request) -> LeadCommandUseCase:
+    container = get_container(request)
+    return container.lead_command_use_case
 
 
 @router.get(
