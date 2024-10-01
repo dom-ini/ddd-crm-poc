@@ -16,7 +16,7 @@ from sales.application.opportunity.command_model import (
 )
 from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
 from sales.application.sales_representative.command import SalesRepresentativeUnitOfWork
-from sales.application.services import CustomerServiceMixin, SalesRepresentativeServiceMixin
+from sales.application.service import CustomerServiceMixin, SalesRepresentativeServiceMixin
 from sales.domain.entities.opportunity import Opportunity
 from sales.domain.exceptions import (
     AmountMustBeGreaterThanZero,

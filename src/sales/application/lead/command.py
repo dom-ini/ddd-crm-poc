@@ -14,7 +14,7 @@ from sales.application.lead.query_model import AssignmentReadModel, LeadReadMode
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
 from sales.application.sales_representative.command import SalesRepresentativeUnitOfWork
-from sales.application.services import CustomerServiceMixin, SalesRepresentativeServiceMixin
+from sales.application.service import CustomerServiceMixin, SalesRepresentativeServiceMixin
 from sales.domain.entities.lead import Lead
 from sales.domain.exceptions import (
     EmailOrPhoneNumberShouldBeSet,
