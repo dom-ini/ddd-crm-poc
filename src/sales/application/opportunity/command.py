@@ -23,8 +23,10 @@ from sales.domain.exceptions import (
     OnlyOwnerCanEditNotes,
     OnlyOwnerCanModifyOffer,
     OnlyOwnerCanModifyOpportunityData,
+    OpportunityCanBeCreatedOnlyForConvertedCustomer,
 )
 from sales.domain.repositories.opportunity import OpportunityRepository
+from sales.domain.service.opportunity import ensure_customer_has_converted_status
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.money.currency import Currency
 from sales.domain.value_objects.money.money import Money
@@ -54,6 +56,7 @@ class OpportunityCommandUseCase(CustomerServiceMixin, SalesRepresentativeService
     def create(self, data: OpportunityCreateModel, creator_id: str) -> OpportunityReadModel:
         self._verify_that_salesman_exists(creator_id)
         self._verify_that_customer_exists(data.customer_id)
+        self._enforce_opportunity_creation_business_rules(data.customer_id)
 
         opportunity_id = str(uuid4())
         source = self._create_source(data.source)
@@ -119,6 +122,12 @@ class OpportunityCommandUseCase(CustomerServiceMixin, SalesRepresentativeService
         if opportunity is None:
             raise ObjectDoesNotExist(opportunity_id)
         return opportunity
+
+    def _enforce_opportunity_creation_business_rules(self, customer_id: str) -> None:
+        try:
+            ensure_customer_has_converted_status(self.customer_service.get_customer_status(customer_id=customer_id))
+        except OpportunityCanBeCreatedOnlyForConvertedCustomer as e:
+            raise InvalidData(e.message) from e
 
     def _create_source_if_provided(self, source_name: str | None) -> AcquisitionSource | None:
         return self._create_source(source_name) if source_name else None

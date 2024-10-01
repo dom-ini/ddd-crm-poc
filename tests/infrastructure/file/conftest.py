@@ -172,6 +172,7 @@ def customer_1(
         editor_id=customer.relation_manager_id,
         data=contact_person,
     )
+    customer_command_use_case.convert(customer_id=customer.id, requestor_id=customer.relation_manager_id)
 
     return customer
 
@@ -222,7 +223,7 @@ def lead_1(
     lead_command_use_case: LeadCommandUseCase,
     representative_1: SalesRepresentativeReadModel,
     representative_3: SalesRepresentativeReadModel,
-    customer_1: CustomerReadModel,
+    customer_2: CustomerReadModel,
     note_content: str,
 ) -> LeadReadModel:
     contact_data = ContactDataCreateUpdateModel(
@@ -231,7 +232,7 @@ def lead_1(
         phone="+48123456789",
         email="jan.kowalski@example.com",
     )
-    lead_data = LeadCreateModel(customer_id=customer_1.id, source="ads", contact_data=contact_data)
+    lead_data = LeadCreateModel(customer_id=customer_2.id, source="ads", contact_data=contact_data)
     lead = lead_command_use_case.create(lead_data=lead_data, creator_id=representative_1.id)
 
     lead_command_use_case.update_assignment(
@@ -252,29 +253,16 @@ def lead_1(
 def lead_2(
     lead_command_use_case: LeadCommandUseCase,
     representative_1: SalesRepresentativeReadModel,
-    customer_2: CustomerReadModel,
+    customer_3: CustomerReadModel,
 ) -> LeadReadModel:
     contact_data = ContactDataCreateUpdateModel(
-        first_name="Jan",
+        first_name="Piotr",
         last_name="Nowak",
         phone="+48123123456",
         email="piotr.nowak@example.com",
     )
-    lead_data = LeadCreateModel(customer_id=customer_2.id, source="cold call", contact_data=contact_data)
+    lead_data = LeadCreateModel(customer_id=customer_3.id, source="cold call", contact_data=contact_data)
     return lead_command_use_case.create(lead_data=lead_data, creator_id=representative_1.id)
-
-
-@pytest.fixture(scope="session")
-def lead_3(
-    lead_command_use_case: LeadCommandUseCase,
-    representative_2: SalesRepresentativeReadModel,
-    customer_3: CustomerReadModel,
-) -> LeadReadModel:
-    contact_data = ContactDataCreateUpdateModel(
-        first_name="Paweł", last_name="Kowalczyk", email="pawel.kowalczyk@example.com"
-    )
-    lead_data = LeadCreateModel(customer_id=customer_3.id, source="website", contact_data=contact_data)
-    return lead_command_use_case.create(lead_data=lead_data, creator_id=representative_2.id)
 
 
 @pytest.fixture(scope="session")

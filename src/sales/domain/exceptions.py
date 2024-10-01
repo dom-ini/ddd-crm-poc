@@ -39,3 +39,7 @@ class LeadCanBeCreatedOnlyForInitialCustomer(DomainException):
 
 class CanCreateOnlyOneLeadPerCustomer(DomainException):
     message = "Given customer already has a lead"
+
+
+class OpportunityCanBeCreatedOnlyForConvertedCustomer(DomainException):
+    message = "Opportunity can be created only for converted customer"

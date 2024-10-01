@@ -12,8 +12,8 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture()
-def all_leads(lead_1: LeadReadModel, lead_2: LeadReadModel, lead_3: LeadReadModel) -> Sequence[LeadReadModel]:
-    return (lead_1, lead_2, lead_3)
+def all_leads(lead_1: LeadReadModel, lead_2: LeadReadModel) -> Sequence[LeadReadModel]:
+    return (lead_1, lead_2)
 
 
 @pytest.fixture()
@@ -47,7 +47,7 @@ def test_get_filtered(query_service: LeadFileQueryService, lead_1: LeadReadModel
     leads = query_service.get_filtered(filters)
 
     fetched_leads_ids = set(lead.id for lead in leads)
-    assert fetched_leads_ids == {lead_1.id, lead_2.id}
+    assert fetched_leads_ids == {lead_1.id}
 
 
 def test_get_assignment_history(

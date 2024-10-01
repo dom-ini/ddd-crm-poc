@@ -17,6 +17,7 @@ from sales.application.opportunity.command_model import (
 from sales.domain.entities.opportunity import Opportunity
 from sales.domain.exceptions import OnlyOwnerCanEditNotes, OnlyOwnerCanModifyOffer, OnlyOwnerCanModifyOpportunityData
 from sales.domain.repositories.opportunity import OpportunityRepository
+from sales.domain.service.shared import SalesCustomerStatusName
 
 valid_offer_item_example = OfferItemCreateUpdateModel(
     product=ProductCreateUpdateModel(name="product"),
@@ -106,12 +107,7 @@ def test_create_opportunity_with_invalid_customer_id_should_fail(
     opportunity_command_use_case: OpportunityCommandUseCase,
 ) -> None:
     opportunity_command_use_case.customer_service.customer_exists.return_value = False
-    data = OpportunityCreateModel(
-        customer_id="customer_1",
-        source="ads",
-        priority="medium",
-        offer=[valid_offer_item_example],
-    )
+    data = MagicMock()
 
     with pytest.raises(InvalidData):
         opportunity_command_use_case.create(data=data, creator_id="salesman-1")
@@ -128,6 +124,25 @@ def test_create_opportunity_with_invalid_salesman_id_should_fail(
 
     with pytest.raises(InvalidData):
         opportunity_command_use_case.create(data=data, creator_id="invalid id")
+
+    opportunity_uow.__enter__().repository.create.assert_not_called()
+
+
+def test_create_opportunity_should_fail_if_customer_has_not_converted_status(
+    opportunity_uow: OpportunityUnitOfWork,
+    opportunity_command_use_case: OpportunityCommandUseCase,
+) -> None:
+    opportunity_uow.__enter__().repository.get_for_customer.return_value = None
+    opportunity_command_use_case.customer_service.get_customer_status.return_value = SalesCustomerStatusName.INITIAL
+    data = OpportunityCreateModel(
+        customer_id="customer_1",
+        source="ads",
+        priority="medium",
+        offer=[valid_offer_item_example],
+    )
+
+    with pytest.raises(InvalidData):
+        opportunity_command_use_case.create(data=data, creator_id="salesman-1")
 
     opportunity_uow.__enter__().repository.create.assert_not_called()
 
