@@ -31,3 +31,11 @@ class AmountMustBeGreaterThanZero(DomainException):
 
 class SalesRepresentativeCanOnlyModifyItsOwnData(DomainException):
     message = "Sales representative can only modify its own data"
+
+
+class LeadCanBeCreatedOnlyForInitialCustomer(DomainException):
+    message = "Lead can be created only for initial customer"
+
+
+class CanCreateOnlyOneLeadPerCustomer(DomainException):
+    message = "Given customer already has a lead"

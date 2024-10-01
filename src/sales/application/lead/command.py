@@ -17,12 +17,15 @@ from sales.application.sales_representative.command import SalesRepresentativeUn
 from sales.application.service import CustomerServiceMixin, SalesRepresentativeServiceMixin
 from sales.domain.entities.lead import Lead
 from sales.domain.exceptions import (
+    CanCreateOnlyOneLeadPerCustomer,
     EmailOrPhoneNumberShouldBeSet,
+    LeadCanBeCreatedOnlyForInitialCustomer,
     OnlyOwnerCanEditNotes,
     OnlyOwnerCanModifyLeadData,
     UnauthorizedLeadOwnerChange,
 )
 from sales.domain.repositories.lead import LeadRepository
+from sales.domain.service.lead import ensure_customer_has_initial_status, ensure_one_lead_per_customer
 from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.contact_data import ContactData
 
@@ -45,6 +48,7 @@ class LeadCommandUseCase(CustomerServiceMixin, SalesRepresentativeServiceMixin):
     def create(self, lead_data: LeadCreateModel, creator_id: str) -> LeadReadModel:
         self._verify_that_salesman_exists(creator_id)
         self._verify_that_customer_exists(lead_data.customer_id)
+        self._enforce_lead_creation_business_rules(lead_data.customer_id)
 
         lead_id = str(uuid4())
         source = self._create_source(lead_data.source)
@@ -107,6 +111,14 @@ class LeadCommandUseCase(CustomerServiceMixin, SalesRepresentativeServiceMixin):
         if lead is None:
             raise ObjectDoesNotExist(lead_id)
         return lead
+
+    def _enforce_lead_creation_business_rules(self, customer_id: str) -> None:
+        try:
+            with self.lead_uow as uow:
+                ensure_one_lead_per_customer(lead_repo=uow.repository, customer_id=customer_id)
+            ensure_customer_has_initial_status(self.customer_service.get_customer_status(customer_id=customer_id))
+        except (CanCreateOnlyOneLeadPerCustomer, LeadCanBeCreatedOnlyForInitialCustomer) as e:
+            raise InvalidData(e.message) from e
 
     def _create_source_if_provided(self, source_name: str | None) -> AcquisitionSource | None:
         return self._create_source(source_name) if source_name else None

@@ -8,6 +8,9 @@ class LeadRepository(ABC):
     def get(self, lead_id: str) -> Lead | None: ...
 
     @abstractmethod
+    def get_for_customer(self, customer_id: str) -> Lead | None: ...
+
+    @abstractmethod
     def create(self, lead: Lead) -> None: ...
 
     @abstractmethod

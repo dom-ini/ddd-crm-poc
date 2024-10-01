@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Protocol, Self, TypeVar
+from typing import Protocol, Self
 
-CustomerT = TypeVar("CustomerT")
+from building_blocks.application.exceptions import ObjectDoesNotExist
+
+
+class Customer(Protocol):
+    status: str
 
 
 class CustomerRepository(Protocol):
-    def get(self, customer_id: str) -> CustomerT | None: ...
+    def get(self, customer_id: str) -> Customer | None: ...
 
 
 class CustomerUnitOfWork(Protocol):
@@ -21,8 +25,18 @@ class ICustomerService(ABC):
     @abstractmethod
     def customer_exists(self, customer_id: str) -> bool: ...
 
+    @abstractmethod
+    def get_customer_status(self, customer_id: str) -> str: ...
+
 
 class CustomerService(ICustomerService):
     def customer_exists(self, customer_id: str) -> bool:
         with self.customer_uow as uow:
             return bool(uow.repository.get(customer_id))
+
+    def get_customer_status(self, customer_id: str) -> str:
+        with self.customer_uow as uow:
+            customer = uow.repository.get(customer_id)
+        if customer is None:
+            raise ObjectDoesNotExist(customer_id)
+        return customer.status

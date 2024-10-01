@@ -252,7 +252,7 @@ def lead_1(
 def lead_2(
     lead_command_use_case: LeadCommandUseCase,
     representative_1: SalesRepresentativeReadModel,
-    customer_1: CustomerReadModel,
+    customer_2: CustomerReadModel,
 ) -> LeadReadModel:
     contact_data = ContactDataCreateUpdateModel(
         first_name="Jan",
@@ -260,7 +260,7 @@ def lead_2(
         phone="+48123123456",
         email="piotr.nowak@example.com",
     )
-    lead_data = LeadCreateModel(customer_id=customer_1.id, source="cold call", contact_data=contact_data)
+    lead_data = LeadCreateModel(customer_id=customer_2.id, source="cold call", contact_data=contact_data)
     return lead_command_use_case.create(lead_data=lead_data, creator_id=representative_1.id)
 
 
@@ -268,12 +268,12 @@ def lead_2(
 def lead_3(
     lead_command_use_case: LeadCommandUseCase,
     representative_2: SalesRepresentativeReadModel,
-    customer_1: CustomerReadModel,
+    customer_3: CustomerReadModel,
 ) -> LeadReadModel:
     contact_data = ContactDataCreateUpdateModel(
         first_name="Paweł", last_name="Kowalczyk", email="pawel.kowalczyk@example.com"
     )
-    lead_data = LeadCreateModel(customer_id=customer_1.id, source="website", contact_data=contact_data)
+    lead_data = LeadCreateModel(customer_id=customer_3.id, source="website", contact_data=contact_data)
     return lead_command_use_case.create(lead_data=lead_data, creator_id=representative_2.id)
 
 

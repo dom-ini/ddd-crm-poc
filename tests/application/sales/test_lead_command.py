@@ -19,6 +19,7 @@ from sales.domain.exceptions import (
     UnauthorizedLeadOwnerChange,
 )
 from sales.domain.repositories.lead import LeadRepository
+from sales.domain.service.shared import SalesCustomerStatusName
 
 
 @pytest.fixture()
@@ -91,6 +92,8 @@ def test_create_lead_correctly_raises_invalid_data(
     lead_command_use_case: LeadCommandUseCase,
     data: LeadCreateModel,
 ) -> None:
+    lead_command_use_case.customer_service.customer_exists.return_value = False
+
     with pytest.raises(InvalidData):
         lead_command_use_case.create(lead_data=data, creator_id="salesman-1")
 
@@ -119,6 +122,50 @@ def test_create_lead_with_invalid_salesman_id_should_fail(
 
     with pytest.raises(InvalidData):
         lead_command_use_case.create(lead_data=data, creator_id="invalid id")
+
+    lead_uow.__enter__().repository.create.assert_not_called()
+
+
+def test_create_lead_should_fail_if_customer_already_has_a_lead(
+    lead_uow: LeadUnitOfWork,
+    lead_command_use_case: LeadCommandUseCase,
+) -> None:
+    data = LeadCreateModel(
+        customer_id="customer-1",
+        source="ads",
+        contact_data=ContactDataCreateUpdateModel(
+            first_name="John",
+            last_name="Doe",
+            phone="+48123123123",
+            email="test@example.com",
+        ),
+    )
+
+    with pytest.raises(InvalidData):
+        lead_command_use_case.create(lead_data=data, creator_id="salesman-1")
+
+    lead_uow.__enter__().repository.create.assert_not_called()
+
+
+def test_create_lead_should_fail_if_customer_has_not_initial_status(
+    lead_uow: LeadUnitOfWork,
+    lead_command_use_case: LeadCommandUseCase,
+) -> None:
+    lead_uow.__enter__().repository.get_for_customer.return_value = None
+    lead_command_use_case.customer_service.get_customer_status.return_value = SalesCustomerStatusName.CONVERTED
+    data = LeadCreateModel(
+        customer_id="customer-1",
+        source="ads",
+        contact_data=ContactDataCreateUpdateModel(
+            first_name="John",
+            last_name="Doe",
+            phone="+48123123123",
+            email="test@example.com",
+        ),
+    )
+
+    with pytest.raises(InvalidData):
+        lead_command_use_case.create(lead_data=data, creator_id="salesman-1")
 
     lead_uow.__enter__().repository.create.assert_not_called()
 
