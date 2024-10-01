@@ -13,6 +13,8 @@ from sales.application.lead.command_model import (
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
+from sales.application.sales_representative.command import SalesRepresentativeUnitOfWork
+from sales.application.services import CustomerServiceMixin, SalesRepresentativeServiceMixin
 from sales.domain.entities.lead import Lead
 from sales.domain.exceptions import (
     EmailOrPhoneNumberShouldBeSet,
@@ -29,14 +31,20 @@ class LeadUnitOfWork(BaseUnitOfWork):
     repository: LeadRepository
 
 
-class LeadCommandUseCase:
-    def __init__(self, lead_uow: LeadUnitOfWork, customer_service: ICustomerService) -> None:
+class LeadCommandUseCase(CustomerServiceMixin, SalesRepresentativeServiceMixin):
+    def __init__(
+        self,
+        lead_uow: LeadUnitOfWork,
+        salesman_uow: SalesRepresentativeUnitOfWork,
+        customer_service: ICustomerService,
+    ) -> None:
         self.lead_uow = lead_uow
+        self.salesman_uow = salesman_uow
         self.customer_service = customer_service
 
     def create(self, lead_data: LeadCreateModel, creator_id: str) -> LeadReadModel:
-        if not self.customer_service.customer_exists(lead_data.customer_id):
-            raise InvalidData(f"Customer with id={lead_data.customer_id} does not exist")
+        self._verify_that_salesman_exists(creator_id)
+        self._verify_that_customer_exists(lead_data.customer_id)
 
         lead_id = str(uuid4())
         source = self._create_source(lead_data.source)
@@ -79,11 +87,14 @@ class LeadCommandUseCase:
     def update_assignment(
         self, lead_id: str, requestor_id: str, assignment_data: AssignmentUpdateModel
     ) -> AssignmentReadModel:
+        new_salesman_id = assignment_data.new_salesman_id
+        self._verify_that_salesman_exists(new_salesman_id)
+
         with self.lead_uow as uow:
             lead = self._get_lead(uow=uow, lead_id=lead_id)
             try:
                 lead.assign_salesman(
-                    new_salesman_id=assignment_data.new_salesman_id,
+                    new_salesman_id=new_salesman_id,
                     requestor_id=requestor_id,
                 )
             except UnauthorizedLeadOwnerChange as e:

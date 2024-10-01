@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from customer_management.application.acl import SalesRepresentativeService
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
     AddressDataCreateUpdateModel,
@@ -51,32 +52,45 @@ def customer_service() -> ICustomerService:
 
 
 @pytest.fixture(scope="session")
-def sr_command_use_case() -> SalesRepresentativeCommandUseCase:
-    uow = SalesRepresentativeFileUnitOfWork(SALES_REPRESENTATIVE_TEST_DATA_PATH)
-    command_use_case = SalesRepresentativeCommandUseCase(sr_uow=uow)
+def sr_uow() -> SalesRepresentativeFileUnitOfWork:
+    return SalesRepresentativeFileUnitOfWork(SALES_REPRESENTATIVE_TEST_DATA_PATH)
+
+
+@pytest.fixture(scope="session")
+def sr_command_use_case(
+    sr_uow: SalesRepresentativeFileUnitOfWork,
+) -> SalesRepresentativeCommandUseCase:
+    command_use_case = SalesRepresentativeCommandUseCase(sr_uow=sr_uow)
     return command_use_case
 
 
 @pytest.fixture(scope="session")
-def lead_command_use_case(customer_service: ICustomerService) -> LeadCommandUseCase:
+def lead_command_use_case(
+    customer_service: ICustomerService, sr_uow: SalesRepresentativeFileUnitOfWork
+) -> LeadCommandUseCase:
     uow = LeadFileUnitOfWork(LEAD_TEST_DATA_PATH)
-    command_use_case = LeadCommandUseCase(lead_uow=uow, customer_service=customer_service)
+    command_use_case = LeadCommandUseCase(lead_uow=uow, salesman_uow=sr_uow, customer_service=customer_service)
     return command_use_case
 
 
 @pytest.fixture(scope="session")
 def opportunity_command_use_case(
-    customer_service: ICustomerService,
+    customer_service: ICustomerService, sr_uow: SalesRepresentativeFileUnitOfWork
 ) -> OpportunityCommandUseCase:
     uow = OpportunityFileUnitOfWork(OPPORTUNITY_TEST_DATA_PATH)
-    command_use_case = OpportunityCommandUseCase(opportunity_uow=uow, customer_service=customer_service)
+    command_use_case = OpportunityCommandUseCase(
+        opportunity_uow=uow, salesman_uow=sr_uow, customer_service=customer_service
+    )
     return command_use_case
 
 
 @pytest.fixture(scope="session")
-def customer_command_use_case() -> CustomerCommandUseCase:
+def customer_command_use_case(
+    sr_uow: SalesRepresentativeFileUnitOfWork,
+) -> CustomerCommandUseCase:
+    sales_rep_service = SalesRepresentativeService(salesman_uow=sr_uow)
     uow = CustomerFileUnitOfWork(CUSTOMER_TEST_DATA_PATH)
-    command_use_case = CustomerCommandUseCase(customer_uow=uow)
+    command_use_case = CustomerCommandUseCase(customer_uow=uow, sales_rep_service=sales_rep_service)
     return command_use_case
 
 
@@ -120,6 +134,17 @@ def address() -> AddressDataCreateUpdateModel:
 
 
 @pytest.fixture(scope="session")
+def company_info(address: AddressDataCreateUpdateModel) -> CompanyInfoCreateUpdateModel:
+    return CompanyInfoCreateUpdateModel(
+        name="Company 1",
+        industry="automotive",
+        size="medium",
+        legal_form="limited",
+        address=address,
+    )
+
+
+@pytest.fixture(scope="session")
 def contact_person() -> ContactPersonCreateModel:
     language = LanguageCreateUpdateModel(name="english", code="en")
     contact_method = ContactMethodCreateUpdateModel(type="email", value="email@example.com", is_preferred=True)
@@ -136,16 +161,9 @@ def contact_person() -> ContactPersonCreateModel:
 def customer_1(
     customer_command_use_case: CustomerCommandUseCase,
     representative_1: SalesRepresentativeReadModel,
-    address: AddressDataCreateUpdateModel,
+    company_info: CompanyInfoCreateUpdateModel,
     contact_person: ContactPersonCreateModel,
 ) -> CustomerReadModel:
-    company_info = CompanyInfoCreateUpdateModel(
-        name="Company 1",
-        industry="automotive",
-        size="medium",
-        legal_form="limited",
-        address=address,
-    )
     data = CustomerCreateModel(relation_manager_id=representative_1.id, company_info=company_info)
     customer = customer_command_use_case.create(customer_data=data)
 

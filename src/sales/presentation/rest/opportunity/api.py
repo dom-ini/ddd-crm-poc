@@ -20,6 +20,7 @@ from sales.application.opportunity.query_model import OfferItemReadModel, Opport
 from sales.infrastructure.file import config as file_config
 from sales.infrastructure.file.opportunity.command import OpportunityFileUnitOfWork
 from sales.infrastructure.file.opportunity.query_service import OpportunityFileQueryService
+from sales.infrastructure.file.sales_representative.command import SalesRepresentativeFileUnitOfWork
 
 router = APIRouter(prefix="/opportunities", tags=["opportunities"])
 
@@ -31,9 +32,12 @@ def get_op_query_use_case() -> OpportunityQueryUseCase:
 
 def get_op_command_use_case() -> OpportunityCommandUseCase:
     customer_uow = CustomerFileUnitOfWork(customer_file_config.CUSTOMERS_FILE_PATH)
+    salesman_uow = SalesRepresentativeFileUnitOfWork(file_config.SALES_REPR_FILE_PATH)
     customer_service = CustomerService(customer_uow=customer_uow)
     op_uow = OpportunityFileUnitOfWork(file_config.OPPORTUNITIES_FILE_PATH)
-    return OpportunityCommandUseCase(opportunity_uow=op_uow, customer_service=customer_service)
+    return OpportunityCommandUseCase(
+        opportunity_uow=op_uow, salesman_uow=salesman_uow, customer_service=customer_service
+    )
 
 
 @router.get("/", response_model=list[OpportunityReadModel])

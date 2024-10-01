@@ -58,7 +58,8 @@ def customer_uow(mock_customer_repository: CustomerRepository) -> CustomerUnitOf
 def customer_command_use_case(
     customer_uow: CustomerUnitOfWork,
 ) -> CustomerCommandUseCase:
-    return CustomerCommandUseCase(customer_uow=customer_uow)
+    salesman_service = MagicMock()
+    return CustomerCommandUseCase(customer_uow=customer_uow, sales_rep_service=salesman_service)
 
 
 @pytest.fixture()
@@ -205,6 +206,28 @@ def test_create_contact_person_correctly_raises_invalid_data(
 
     with pytest.raises(InvalidData):
         customer_command_use_case.create_contact_person(customer_id="customer", editor_id="salesman-1", data=data)
+
+
+def test_create_customer_with_invalid_salesman_id_should_fail(
+    customer_uow: CustomerUnitOfWork,
+    customer_command_use_case: CustomerCommandUseCase,
+) -> None:
+    customer_command_use_case.sales_rep_service.salesman_exists.return_value = False
+    data = CustomerCreateModel(
+        relation_manager_id="invalid id",
+        company_info=CompanyInfoCreateUpdateModel(
+            name="company name",
+            industry="automotive",
+            size="medium",
+            legal_form="limited",
+            address=address_example,
+        ),
+    )
+
+    with pytest.raises(InvalidData):
+        customer_command_use_case.create(customer_data=data)
+
+    customer_uow.__enter__().repository.create.assert_not_called()
 
 
 @pytest.mark.parametrize(

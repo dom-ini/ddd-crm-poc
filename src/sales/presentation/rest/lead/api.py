@@ -16,6 +16,7 @@ from sales.application.notes.query_model import NoteReadModel
 from sales.infrastructure.file import config as file_config
 from sales.infrastructure.file.lead.command import LeadFileUnitOfWork
 from sales.infrastructure.file.lead.query_service import LeadFileQueryService
+from sales.infrastructure.file.sales_representative.command import SalesRepresentativeFileUnitOfWork
 
 router = APIRouter(prefix="/leads", tags=["leads"])
 
@@ -27,9 +28,10 @@ def get_lead_query_use_case() -> LeadQueryUseCase:
 
 def get_lead_command_use_case() -> LeadCommandUseCase:
     customer_uow = CustomerFileUnitOfWork(customer_file_config.CUSTOMERS_FILE_PATH)
+    salesman_uow = SalesRepresentativeFileUnitOfWork(file_config.SALES_REPR_FILE_PATH)
     customer_service = CustomerService(customer_uow=customer_uow)
     lead_uow = LeadFileUnitOfWork(file_config.LEADS_FILE_PATH)
-    return LeadCommandUseCase(lead_uow=lead_uow, customer_service=customer_service)
+    return LeadCommandUseCase(lead_uow=lead_uow, salesman_uow=salesman_uow, customer_service=customer_service)
 
 
 @router.get(

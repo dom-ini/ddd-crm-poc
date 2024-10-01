@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Path, status as status_code
 
 from building_blocks.application.exceptions import ConfictingAction, InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from customer_management.application.acl import SalesRepresentativeService
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
     ContactPersonCreateModel,
@@ -15,6 +16,8 @@ from customer_management.application.query_model import ContactPersonReadModel, 
 from customer_management.infrastructure.file import config as file_config
 from customer_management.infrastructure.file.customer.command import CustomerFileUnitOfWork
 from customer_management.infrastructure.file.customer.query_service import CustomerFileQueryService
+from sales.infrastructure.file import config as sr_file_config
+from sales.infrastructure.file.sales_representative.command import SalesRepresentativeFileUnitOfWork
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -25,8 +28,10 @@ def get_customer_query_use_case() -> CustomerQueryUseCase:
 
 
 def get_customer_command_use_case() -> CustomerCommandUseCase:
+    sr_uow = SalesRepresentativeFileUnitOfWork(sr_file_config.SALES_REPR_FILE_PATH)
+    sr_service = SalesRepresentativeService(salesman_uow=sr_uow)
     customer_uow = CustomerFileUnitOfWork(file_config.CUSTOMERS_FILE_PATH)
-    return CustomerCommandUseCase(customer_uow)
+    return CustomerCommandUseCase(customer_uow, sales_rep_service=sr_service)
 
 
 @router.get(

@@ -5,7 +5,12 @@ import pytest
 from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
 from building_blocks.domain.exceptions import DomainException, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from sales.application.lead.command import LeadCommandUseCase, LeadUnitOfWork
-from sales.application.lead.command_model import ContactDataCreateUpdateModel, LeadCreateModel, LeadUpdateModel
+from sales.application.lead.command_model import (
+    AssignmentUpdateModel,
+    ContactDataCreateUpdateModel,
+    LeadCreateModel,
+    LeadUpdateModel,
+)
 from sales.domain.entities.lead import Lead
 from sales.domain.exceptions import (
     EmailOrPhoneNumberShouldBeSet,
@@ -32,7 +37,8 @@ def lead_uow(mock_lead_repository: LeadRepository) -> LeadUnitOfWork:
 @pytest.fixture()
 def lead_command_use_case(lead_uow: LeadUnitOfWork) -> LeadCommandUseCase:
     customer_service = MagicMock()
-    return LeadCommandUseCase(lead_uow=lead_uow, customer_service=customer_service)
+    salesman_uow = MagicMock()
+    return LeadCommandUseCase(lead_uow=lead_uow, salesman_uow=salesman_uow, customer_service=customer_service)
 
 
 @pytest.fixture()
@@ -96,21 +102,38 @@ def test_create_lead_with_invalid_customer_id_should_fail(
     lead_command_use_case: LeadCommandUseCase,
 ) -> None:
     lead_command_use_case.customer_service.customer_exists.return_value = False
-    data = LeadCreateModel(
-        customer_id="customer-1",
-        source="ads",
-        contact_data=ContactDataCreateUpdateModel(
-            first_name="John",
-            last_name="Doe",
-            phone="+48123123123",
-            email="test@example.com",
-        ),
-    )
+    data = MagicMock()
 
     with pytest.raises(InvalidData):
         lead_command_use_case.create(lead_data=data, creator_id="salesman-1")
 
     lead_uow.__enter__().repository.create.assert_not_called()
+
+
+def test_create_lead_with_invalid_salesman_id_should_fail(
+    lead_uow: LeadUnitOfWork,
+    lead_command_use_case: LeadCommandUseCase,
+) -> None:
+    lead_command_use_case.salesman_uow.__enter__().repository.get.return_value = None
+    data = MagicMock()
+
+    with pytest.raises(InvalidData):
+        lead_command_use_case.create(lead_data=data, creator_id="invalid id")
+
+    lead_uow.__enter__().repository.create.assert_not_called()
+
+
+def test_update_lead_assignment_with_invalid_salesman_id_should_fail(
+    lead_uow: LeadUnitOfWork,
+    lead_command_use_case: LeadCommandUseCase,
+) -> None:
+    lead_command_use_case.salesman_uow.__enter__().repository.get.return_value = None
+    data = AssignmentUpdateModel(new_salesman_id="invalid id")
+
+    with pytest.raises(InvalidData):
+        lead_command_use_case.update_assignment(lead_id="lead id", requestor_id="salesman id", assignment_data=data)
+
+    lead_uow.__enter__().repository.update.assert_not_called()
 
 
 @pytest.mark.parametrize(

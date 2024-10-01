@@ -4,6 +4,7 @@ from uuid import uuid4
 from building_blocks.application.command import BaseUnitOfWork
 from building_blocks.application.exceptions import ConfictingAction, InvalidData, ObjectDoesNotExist, UnauthorizedAction
 from building_blocks.domain.exceptions import DuplicateEntry, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
+from customer_management.application.acl import ISalesRepresentativeService
 from customer_management.application.command_model import (
     AddressDataCreateUpdateModel,
     CompanyInfoCreateUpdateModel,
@@ -41,10 +42,17 @@ class CustomerUnitOfWork(BaseUnitOfWork):
 
 
 class CustomerCommandUseCase:
-    def __init__(self, customer_uow: CustomerUnitOfWork) -> None:
+    def __init__(
+        self,
+        customer_uow: CustomerUnitOfWork,
+        sales_rep_service: ISalesRepresentativeService,
+    ) -> None:
         self.customer_uow = customer_uow
+        self.sales_rep_service = sales_rep_service
 
     def create(self, customer_data: CustomerCreateModel) -> CustomerReadModel:
+        self._verify_that_salesman_exists(customer_data.relation_manager_id)
+
         customer_id = str(uuid4())
         company_info = self._create_company_info(customer_data.company_info)
         customer = Customer(
@@ -57,6 +65,8 @@ class CustomerCommandUseCase:
         return CustomerReadModel.from_domain(customer)
 
     def update(self, customer_id: str, editor_id: str, customer_data: CustomerUpdateModel) -> CustomerReadModel:
+        self._verify_that_salesman_exists(customer_data.relation_manager_id)
+
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
             try:
@@ -170,6 +180,10 @@ class CustomerCommandUseCase:
         if customer is None:
             raise ObjectDoesNotExist(customer_id)
         return customer
+
+    def _verify_that_salesman_exists(self, salesman_id: str) -> None:
+        if not self.sales_rep_service.salesman_exists(salesman_id):
+            raise InvalidData(f"SalesRepresentative with id={salesman_id} does not exist")
 
     def _create_company_info_if_provided(self, company_info: CompanyInfoCreateUpdateModel) -> CompanyInfo | None:
         return self._create_company_info(company_info) if company_info else None

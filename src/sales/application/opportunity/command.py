@@ -15,6 +15,8 @@ from sales.application.opportunity.command_model import (
     OpportunityUpdateModel,
 )
 from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
+from sales.application.sales_representative.command import SalesRepresentativeUnitOfWork
+from sales.application.services import CustomerServiceMixin, SalesRepresentativeServiceMixin
 from sales.domain.entities.opportunity import Opportunity
 from sales.domain.exceptions import (
     AmountMustBeGreaterThanZero,
@@ -38,16 +40,20 @@ class OpportunityUnitOfWork(BaseUnitOfWork):
     repository: OpportunityRepository
 
 
-class OpportunityCommandUseCase:
-    def __init__(self, opportunity_uow: OpportunityUnitOfWork, customer_service: ICustomerService) -> None:
+class OpportunityCommandUseCase(CustomerServiceMixin, SalesRepresentativeServiceMixin):
+    def __init__(
+        self,
+        opportunity_uow: OpportunityUnitOfWork,
+        salesman_uow: SalesRepresentativeUnitOfWork,
+        customer_service: ICustomerService,
+    ) -> None:
         self.opportunity_uow = opportunity_uow
+        self.salesman_uow = salesman_uow
         self.customer_service = customer_service
 
     def create(self, data: OpportunityCreateModel, creator_id: str) -> OpportunityReadModel:
-        print(data)
-        print(data.customer_id)
-        if not self.customer_service.customer_exists(data.customer_id):
-            raise InvalidData(f"Customer with id={data.customer_id} does not exist")
+        self._verify_that_salesman_exists(creator_id)
+        self._verify_that_customer_exists(data.customer_id)
 
         opportunity_id = str(uuid4())
         source = self._create_source(data.source)
