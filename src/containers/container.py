@@ -1,5 +1,6 @@
 from abc import ABC
 
+from authentication.infrastructure.service.base import AuthenticationService
 from customer_management.application.acl import OpportunityService, SalesRepresentativeService
 from customer_management.application.command import CustomerCommandUseCase, CustomerUnitOfWork
 from customer_management.application.query import CustomerQueryUseCase
@@ -20,6 +21,8 @@ from sales.application.sales_representative.query_service import SalesRepresenta
 
 
 class ApplicationContainer(ABC):
+    _auth_service: AuthenticationService
+
     _customer_uow: CustomerUnitOfWork
     _sr_uow: SalesRepresentativeUnitOfWork
     _lead_uow: LeadUnitOfWork
@@ -77,3 +80,7 @@ class ApplicationContainer(ABC):
     @property
     def sr_query_use_case(self) -> SalesRepresentativeQueryUseCase:
         return SalesRepresentativeQueryUseCase(sr_query_service=self._sr_qs)
+
+    @property
+    def auth_service(self) -> AuthenticationService:
+        return self._auth_service

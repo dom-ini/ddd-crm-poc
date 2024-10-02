@@ -1,3 +1,8 @@
+import os
+
+from firebase_admin import credentials
+
+from authentication.infrastructure.service.firebase import FirebaseAuthenticationService
 from containers.container import ApplicationContainer
 from customer_management.application.acl import OpportunityService, SalesRepresentativeService
 from customer_management.infrastructure.file.config import CUSTOMERS_FILE_PATH
@@ -15,6 +20,9 @@ from sales.infrastructure.file.sales_representative.query_service import SalesRe
 
 class FileApplicationContainer(ApplicationContainer):
     def __init__(self) -> None:
+        firebase_credentials = credentials.Certificate(os.getenv("FIREBASE_SERVICE_KEY_PATH"))
+        self._auth_service = FirebaseAuthenticationService(firebase_credentials)
+
         self._customer_uow = CustomerFileUnitOfWork(CUSTOMERS_FILE_PATH)
         self._lead_uow = LeadFileUnitOfWork(LEADS_FILE_PATH)
         self._opportunity_uow = OpportunityFileUnitOfWork(OPPORTUNITIES_FILE_PATH)

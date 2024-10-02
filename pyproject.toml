@@ -25,6 +25,7 @@ attrs = "^24.2.0"
 email-validator = "^2.2.0"
 faker = "^28.4.1"
 fastapi = {extras = ["standard"], version = "^0.112.2"}
+firebase-admin = "^6.5.0"
 phonenumbers = "^8.13.43"
 pydantic = "^2.8.2"
 python = "^3.12"

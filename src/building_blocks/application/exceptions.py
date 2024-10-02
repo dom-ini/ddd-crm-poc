@@ -14,7 +14,7 @@ class InvalidFilterType(ApplicationException):
     message = "No filter function defined for given filter type"
 
 
-class UnauthorizedAction(ApplicationException):
+class ForbiddenAction(ApplicationException):
     pass
 
 

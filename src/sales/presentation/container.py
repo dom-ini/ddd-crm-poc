@@ -2,6 +2,7 @@ from typing import Protocol
 
 from fastapi import Request
 
+from authentication.infrastructure.service.base import AuthenticationService
 from sales.application.lead.command import LeadCommandUseCase
 from sales.application.lead.query import LeadQueryUseCase
 from sales.application.opportunity.command import OpportunityCommandUseCase
@@ -19,6 +20,8 @@ class SalesApplicationContainer(Protocol):
 
     opportunity_command_use_case: OpportunityCommandUseCase
     opportunity_query_use_case: OpportunityQueryUseCase
+
+    auth_service: AuthenticationService
 
 
 def get_container(request: Request) -> SalesApplicationContainer:
