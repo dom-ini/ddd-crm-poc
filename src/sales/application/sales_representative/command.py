@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, ObjectDoesNotExist
 from sales.application.sales_representative.command_model import (
     SalesRepresentativeCreateModel,
     SalesRepresentativeUpdateModel,
@@ -42,7 +42,7 @@ class SalesRepresentativeCommandUseCase:
                     last_name=data.last_name,
                 )
             except SalesRepresentativeCanOnlyModifyItsOwnData as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(representative)
         return SalesRepresentativeReadModel.from_domain(representative)
 

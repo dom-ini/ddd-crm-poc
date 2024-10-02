@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import DomainException, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from sales.application.lead.command import LeadCommandUseCase, LeadUnitOfWork
 from sales.application.lead.command_model import (
@@ -291,7 +291,7 @@ def test_update_by_unauthorized_user_should_fail(
         ),
     )
 
-    with pytest.raises(UnauthorizedAction):
+    with pytest.raises(ForbiddenAction):
         lead_command_use_case.update(lead_id="lead-1", editor_id="salesman-1", lead_data=data)
 
 
@@ -303,7 +303,7 @@ def test_update_note_by_unauthorized_user_should_fail(
     lead_uow.__enter__().repository.get.return_value = mock_lead
     mock_lead.change_note.side_effect = OnlyOwnerCanEditNotes
 
-    with pytest.raises(UnauthorizedAction):
+    with pytest.raises(ForbiddenAction):
         lead_command_use_case.update_note(lead_id="lead-1", editor_id="salesman-1", note_data=MagicMock())
 
 
@@ -315,7 +315,7 @@ def test_update_assignment_by_unauthorized_user_should_fail(
     lead_uow.__enter__().repository.get.return_value = mock_lead
     mock_lead.assign_salesman.side_effect = UnauthorizedLeadOwnerChange
 
-    with pytest.raises(UnauthorizedAction):
+    with pytest.raises(ForbiddenAction):
         lead_command_use_case.update_assignment(
             lead_id="lead-1", requestor_id="salesman-1", assignment_data=MagicMock()
         )

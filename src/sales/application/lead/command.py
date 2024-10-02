@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from sales.application.acl import ICustomerService
 from sales.application.lead.command_model import (
@@ -74,7 +74,7 @@ class LeadCommandUseCase(CustomerServiceMixin, SalesRepresentativeServiceMixin):
                     contact_data=self._create_contact_data_if_provided(lead_data.contact_data),
                 )
             except OnlyOwnerCanModifyLeadData as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(lead)
         return LeadReadModel.from_domain(lead)
 
@@ -84,7 +84,7 @@ class LeadCommandUseCase(CustomerServiceMixin, SalesRepresentativeServiceMixin):
             try:
                 lead.change_note(new_content=note_data.content, editor_id=editor_id)
             except OnlyOwnerCanEditNotes as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(lead)
         return NoteReadModel.from_domain(lead.note)
 
@@ -102,7 +102,7 @@ class LeadCommandUseCase(CustomerServiceMixin, SalesRepresentativeServiceMixin):
                     requestor_id=requestor_id,
                 )
             except UnauthorizedLeadOwnerChange as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(lead)
         return AssignmentReadModel.from_domain(lead.most_recent_assignment)
 

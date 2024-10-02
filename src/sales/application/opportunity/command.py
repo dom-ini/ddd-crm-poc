@@ -3,7 +3,7 @@ from typing import TypeVar
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import ValueNotAllowed
 from building_blocks.domain.value_object import ValueObject
 from sales.application.acl import ICustomerService
@@ -87,7 +87,7 @@ class OpportunityCommandUseCase(CustomerServiceMixin, SalesRepresentativeService
                     priority=self._create_priority_if_provided(data.priority),
                 )
             except OnlyOwnerCanModifyOpportunityData as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(opportunity)
         return OpportunityReadModel.from_domain(opportunity)
 
@@ -103,7 +103,7 @@ class OpportunityCommandUseCase(CustomerServiceMixin, SalesRepresentativeService
             try:
                 opportunity.modify_offer(new_offer=new_offer, editor_id=editor_id)
             except OnlyOwnerCanModifyOffer as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(opportunity)
         return tuple(OfferItemReadModel.from_domain(item) for item in new_offer)
 
@@ -113,7 +113,7 @@ class OpportunityCommandUseCase(CustomerServiceMixin, SalesRepresentativeService
             try:
                 opportunity.change_note(new_content=note_data.content, editor_id=editor_id)
             except OnlyOwnerCanEditNotes as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(opportunity)
         return NoteReadModel.from_domain(opportunity.note)
 

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
-from building_blocks.application.exceptions import ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, ObjectDoesNotExist
 from sales.application.sales_representative.command import SalesRepresentativeCommandUseCase
 from sales.application.sales_representative.command_model import (
     SalesRepresentativeCreateModel,
@@ -51,7 +51,7 @@ def update_sales_representative(
 ) -> None:
     try:
         representative = sr_command_use_case.update(representative_id=representative_id, editor_id=editor_id, data=data)
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except ObjectDoesNotExist as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e

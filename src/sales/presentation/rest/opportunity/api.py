@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
-from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
 from sales.application.opportunity.command import OpportunityCommandUseCase
@@ -76,7 +76,7 @@ def update_opportunity(
 ) -> None:
     try:
         opportunity = op_command_use_case.update(opportunity_id=opportunity_id, editor_id=editor_id, data=data)
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except ObjectDoesNotExist as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
@@ -113,7 +113,7 @@ def update_opportunity_offer(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
     except InvalidData as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     return offer_items
 
@@ -142,6 +142,6 @@ def create_note(
 ) -> None:
     try:
         note = op_command_use_case.update_note(opportunity_id=opportunity_id, editor_id=creator_id, note_data=data)
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     return note

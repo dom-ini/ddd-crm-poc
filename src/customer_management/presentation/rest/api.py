@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status as status_code
 
-from building_blocks.application.exceptions import ConfictingAction, InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ConfictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
     ContactPersonCreateModel,
@@ -72,7 +72,7 @@ def update_customer(
 ) -> None:
     try:
         customer = customer_command_use_case.update(customer_id=customer_id, editor_id=editor_id, customer_data=data)
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
     except InvalidData as e:
         raise HTTPException(status_code=status_code.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
@@ -109,7 +109,7 @@ def convert_customer(
         customer_command_use_case.convert(customer_id, requestor_id=requestor_id)
     except ConfictingAction as e:
         raise HTTPException(status_code=status_code.HTTP_409_CONFLICT, detail=e.message) from e
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
     except InvalidData as e:
         raise HTTPException(status_code=status_code.HTTP_400_BAD_REQUEST, detail=e.message) from e
@@ -128,7 +128,7 @@ def archive_customer(
         customer_command_use_case.archive(customer_id, requestor_id=requestor_id)
     except ConfictingAction as e:
         raise HTTPException(status_code=status_code.HTTP_409_CONFLICT, detail=e.message) from e
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
 
 

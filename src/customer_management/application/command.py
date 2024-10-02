@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import ConfictingAction, InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ConfictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import DuplicateEntry, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from customer_management.application.acl import IOpportunityService, ISalesRepresentativeService
 from customer_management.application.command_model import (
@@ -80,7 +80,7 @@ class CustomerCommandUseCase:
                     company_info=self._create_company_info_if_provided(customer_data.company_info),
                 )
             except OnlyRelationManagerCanModifyCustomerData as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(customer)
         return CustomerReadModel.from_domain(customer)
 
@@ -95,7 +95,7 @@ class CustomerCommandUseCase:
             ) as e:
                 raise ConfictingAction(e.message) from e
             except (OnlyRelationManagerCanChangeStatus,) as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             except NotEnoughContactPersons as e:
                 raise InvalidData(e.message) from e
             uow.repository.update(customer)
@@ -110,7 +110,7 @@ class CustomerCommandUseCase:
             except (CustomerAlreadyArchived,) as e:
                 raise ConfictingAction(e.message) from e
             except (OnlyRelationManagerCanChangeStatus,) as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(customer)
 
     def create_contact_person(
@@ -134,7 +134,7 @@ class CustomerCommandUseCase:
             except (NotEnoughPreferredContactMethods, DuplicateEntry) as e:
                 raise InvalidData(e.message) from e
             except OnlyRelationManagerCanModifyCustomerData as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(customer)
         contact_person = customer.get_contact_person(contact_person_id)
         return ContactPersonReadModel.from_domain(contact_person)
@@ -165,7 +165,7 @@ class CustomerCommandUseCase:
             except (NotEnoughPreferredContactMethods, DuplicateEntry) as e:
                 raise InvalidData(e.message) from e
             except OnlyRelationManagerCanModifyCustomerData as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(customer)
         contact_person = customer.get_contact_person(contact_person_id)
         return ContactPersonReadModel.from_domain(contact_person)
@@ -178,7 +178,7 @@ class CustomerCommandUseCase:
             except ContactPersonDoesNotExist as e:
                 raise ObjectDoesNotExist(customer_id) from e
             except OnlyRelationManagerCanModifyCustomerData as e:
-                raise UnauthorizedAction(e.message) from e
+                raise ForbiddenAction(e.message) from e
             uow.repository.update(customer)
 
     def _get_customer(self, uow: CustomerUnitOfWork, customer_id: str) -> Customer:

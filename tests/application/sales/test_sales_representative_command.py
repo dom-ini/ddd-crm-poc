@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from building_blocks.application.exceptions import ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, ObjectDoesNotExist
 from sales.application.sales_representative.command import (
     SalesRepresentativeCommandUseCase,
     SalesRepresentativeUnitOfWork,
@@ -58,5 +58,5 @@ def test_update_by_unauthorized_user_should_fail(
     sr_uow.__enter__().repository.get.return_value = mock_sales_representative
     mock_sales_representative.update.side_effect = SalesRepresentativeCanOnlyModifyItsOwnData
 
-    with pytest.raises(UnauthorizedAction):
+    with pytest.raises(ForbiddenAction):
         sr_command_use_case.update(representative_id="sr-1", editor_id="sr-2", data=MagicMock())

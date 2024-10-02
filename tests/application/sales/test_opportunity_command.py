@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import DomainException
 from sales.application.opportunity.command import OpportunityCommandUseCase, OpportunityUnitOfWork
 from sales.application.opportunity.command_model import (
@@ -258,7 +258,7 @@ def test_calling_method_by_unauthorized_user_should_fail(
     opportunity_uow.__enter__().repository.get.return_value = mock_opportunity
     getattr(mock_opportunity, domain_method_name).side_effect = exception_class
 
-    with pytest.raises(UnauthorizedAction):
+    with pytest.raises(ForbiddenAction):
         getattr(opportunity_command_use_case, method_name)(
             opportunity_id="opp-1", editor_id="salesman-1", **data_kwargs
         )

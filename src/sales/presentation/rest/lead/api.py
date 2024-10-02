@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
-from building_blocks.application.exceptions import InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
 from sales.application.lead.command import LeadCommandUseCase
 from sales.application.lead.command_model import AssignmentUpdateModel, LeadCreateModel, LeadUpdateModel
 from sales.application.lead.query import LeadQueryUseCase
@@ -81,7 +81,7 @@ def update_lead(
 ) -> None:
     try:
         lead = lead_command_use_case.update(lead_id=lead_id, editor_id=editor_id, lead_data=data)
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except InvalidData as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
@@ -114,7 +114,7 @@ def assign_salesman(
 ) -> None:
     try:
         note = lead_command_use_case.update_assignment(lead_id=lead_id, requestor_id=creator_id, assignment_data=data)
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     return note
 
@@ -143,6 +143,6 @@ def create_note(
 ) -> None:
     try:
         note = lead_command_use_case.update_note(lead_id=lead_id, editor_id=creator_id, note_data=data)
-    except UnauthorizedAction as e:
+    except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     return note

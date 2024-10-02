@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from building_blocks.application.exceptions import ConfictingAction, InvalidData, ObjectDoesNotExist, UnauthorizedAction
+from building_blocks.application.exceptions import ConfictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import DomainException, DuplicateEntry
 from customer_management.application.command import CustomerCommandUseCase, CustomerUnitOfWork
 from customer_management.application.command_model import (
@@ -338,7 +338,7 @@ def test_calling_methods_by_unauthorized_user_should_fail(
     customer_uow.__enter__().repository.get.return_value = mock_customer
     getattr(mock_customer, domain_method_name).side_effect = OnlyRelationManagerCanModifyCustomerData
 
-    with pytest.raises(UnauthorizedAction):
+    with pytest.raises(ForbiddenAction):
         getattr(customer_command_use_case, method_name)(customer_id="customer-1", editor_id="salesman-1", **kwargs)
 
 
@@ -448,7 +448,7 @@ def test_convert_or_archive_by_non_relation_manager_should_fail(
     customer_uow.__enter__().repository.get.return_value = mock_customer
     getattr(mock_customer, method_name).side_effect = OnlyRelationManagerCanChangeStatus
 
-    with pytest.raises(UnauthorizedAction):
+    with pytest.raises(ForbiddenAction):
         getattr(customer_command_use_case, method_name)(customer_id="customer-1", requestor_id="salesman-1")
 
 
