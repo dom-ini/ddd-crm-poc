@@ -1,8 +1,9 @@
 from typing import Annotated
-from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
+from authentication.infrastructure.service.base import UserReadModel
+from authentication.presentation.rest.deps import get_current_user
 from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
@@ -16,7 +17,7 @@ from sales.application.opportunity.query import OpportunityQueryUseCase
 from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
 from sales.presentation.container import get_container
 
-router = APIRouter(prefix="/opportunities", tags=["opportunities"])
+router = APIRouter(prefix="/opportunities", tags=["opportunities"], dependencies=[Depends(get_current_user)])
 
 
 def get_op_query_use_case(request: Request) -> OpportunityQueryUseCase:
@@ -47,9 +48,10 @@ def get_opportunities(
 def create_opportunity(
     op_command_use_case: Annotated[OpportunityCommandUseCase, Depends(get_op_command_use_case)],
     data: OpportunityCreateModel,
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        opportunity = op_command_use_case.create(data=data, creator_id=str(uuid4()))
+        opportunity = op_command_use_case.create(data=data, creator_id=current_user.salesman_id)
     except InvalidData as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
     return opportunity
@@ -72,10 +74,12 @@ def update_opportunity(
     op_command_use_case: Annotated[OpportunityCommandUseCase, Depends(get_op_command_use_case)],
     data: OpportunityUpdateModel,
     opportunity_id: Annotated[str, Path],
-    editor_id: Annotated[str, Path],  # DOZMIANY wywalić!!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        opportunity = op_command_use_case.update(opportunity_id=opportunity_id, editor_id=editor_id, data=data)
+        opportunity = op_command_use_case.update(
+            opportunity_id=opportunity_id, editor_id=current_user.salesman_id, data=data
+        )
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except ObjectDoesNotExist as e:
@@ -105,10 +109,12 @@ def update_opportunity_offer(
     op_command_use_case: Annotated[OpportunityCommandUseCase, Depends(get_op_command_use_case)],
     data: list[OfferItemCreateUpdateModel],
     opportunity_id: Annotated[str, Path],
-    editor_id: Annotated[str, Path],
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        offer_items = op_command_use_case.update_offer(opportunity_id=opportunity_id, editor_id=editor_id, data=data)
+        offer_items = op_command_use_case.update_offer(
+            opportunity_id=opportunity_id, editor_id=current_user.salesman_id, data=data
+        )
     except ObjectDoesNotExist as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
     except InvalidData as e:
@@ -138,10 +144,12 @@ def create_note(
     op_command_use_case: Annotated[OpportunityCommandUseCase, Depends(get_op_command_use_case)],
     data: NoteCreateModel,
     opportunity_id: Annotated[str, Path],
-    creator_id: Annotated[str, Path],  # DOZMIANY wywalić!!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        note = op_command_use_case.update_note(opportunity_id=opportunity_id, editor_id=creator_id, note_data=data)
+        note = op_command_use_case.update_note(
+            opportunity_id=opportunity_id, editor_id=current_user.salesman_id, note_data=data
+        )
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     return note

@@ -2,6 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status as status_code
 
+from authentication.infrastructure.service.base import UserReadModel
+from authentication.presentation.rest.deps import get_current_user
 from building_blocks.application.exceptions import ConfictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
@@ -14,7 +16,7 @@ from customer_management.application.query import CustomerQueryUseCase
 from customer_management.application.query_model import ContactPersonReadModel, CustomerReadModel
 from customer_management.presentation.container import get_container
 
-router = APIRouter(prefix="/customers", tags=["customers"])
+router = APIRouter(prefix="/customers", tags=["customers"], dependencies=[Depends(get_current_user)])
 
 
 def get_customer_query_use_case(request: Request) -> CustomerQueryUseCase:
@@ -68,10 +70,12 @@ def update_customer(
     customer_command_use_case: Annotated[CustomerCommandUseCase, Depends(get_customer_command_use_case)],
     data: CustomerUpdateModel,
     customer_id: Annotated[str, Path],
-    editor_id: Annotated[str, Path],  # DOZMIANY wywalić!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        customer = customer_command_use_case.update(customer_id=customer_id, editor_id=editor_id, customer_data=data)
+        customer = customer_command_use_case.update(
+            customer_id=customer_id, editor_id=current_user.id, customer_data=data
+        )
     except ForbiddenAction as e:
         raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
     except InvalidData as e:
@@ -103,10 +107,10 @@ def get_single_customer(
 def convert_customer(
     customer_command_use_case: Annotated[CustomerCommandUseCase, Depends(get_customer_command_use_case)],
     customer_id: Annotated[str, Path],
-    requestor_id: Annotated[str, Path],  # DOZMIANY wywalić!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        customer_command_use_case.convert(customer_id, requestor_id=requestor_id)
+        customer_command_use_case.convert(customer_id, requestor_id=current_user.salesman_id)
     except ConfictingAction as e:
         raise HTTPException(status_code=status_code.HTTP_409_CONFLICT, detail=e.message) from e
     except ForbiddenAction as e:
@@ -122,10 +126,10 @@ def convert_customer(
 def archive_customer(
     customer_command_use_case: Annotated[CustomerCommandUseCase, Depends(get_customer_command_use_case)],
     customer_id: Annotated[str, Path],
-    requestor_id: Annotated[str, Path],  # DOZMIANY wywalić!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        customer_command_use_case.archive(customer_id, requestor_id=requestor_id)
+        customer_command_use_case.archive(customer_id, requestor_id=current_user.salesman_id)
     except ConfictingAction as e:
         raise HTTPException(status_code=status_code.HTTP_409_CONFLICT, detail=e.message) from e
     except ForbiddenAction as e:
@@ -155,13 +159,18 @@ def create_customers_contact_person(
     customer_command_use_case: Annotated[CustomerCommandUseCase, Depends(get_customer_command_use_case)],
     data: ContactPersonCreateModel,
     customer_id: Annotated[str, Path],
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        contact_person = customer_command_use_case.create_contact_person(customer_id=customer_id, data=data)
+        contact_person = customer_command_use_case.create_contact_person(
+            customer_id=customer_id, editor_id=current_user.salesman_id, data=data
+        )
     except ObjectDoesNotExist as e:
         raise HTTPException(status_code=status_code.HTTP_404_NOT_FOUND, detail=e.message) from e
     except InvalidData as e:
         raise HTTPException(status_code=status_code.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
+    except ForbiddenAction as e:
+        raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
     return contact_person
 
 
@@ -174,15 +183,18 @@ def update_customers_contact_person(
     data: ContactPersonUpdateModel,
     customer_id: Annotated[str, Path],
     contact_person_id: Annotated[str, Path],
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
         contact_person = customer_command_use_case.update_contact_person(
-            customer_id=customer_id, contact_person_id=contact_person_id, data=data
+            customer_id=customer_id, contact_person_id=contact_person_id, editor_id=current_user.salesman_id, data=data
         )
     except ObjectDoesNotExist as e:
         raise HTTPException(status_code=status_code.HTTP_404_NOT_FOUND, detail=e.message) from e
     except InvalidData as e:
         raise HTTPException(status_code=status_code.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
+    except ForbiddenAction as e:
+        raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
     return contact_person
 
 
@@ -194,8 +206,11 @@ def remove_customers_contact_person(
     customer_command_use_case: Annotated[CustomerCommandUseCase, Depends(get_customer_command_use_case)],
     customer_id: Annotated[str, Path],
     contact_person_id: Annotated[str, Path],
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        customer_command_use_case.remove_contact_person(customer_id=customer_id, contact_person_id=contact_person_id)
+        customer_command_use_case.remove_contact_person(
+            customer_id=customer_id, contact_person_id=contact_person_id, editor_id=current_user.salesman_id
+        )
     except ObjectDoesNotExist as e:
         raise HTTPException(status_code=status_code.HTTP_404_NOT_FOUND, detail=e.message) from e

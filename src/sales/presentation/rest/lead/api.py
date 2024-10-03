@@ -1,8 +1,9 @@
 from typing import Annotated
-from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
+from authentication.infrastructure.service.base import UserReadModel
+from authentication.presentation.rest.deps import get_current_user
 from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
 from sales.application.lead.command import LeadCommandUseCase
 from sales.application.lead.command_model import AssignmentUpdateModel, LeadCreateModel, LeadUpdateModel
@@ -12,7 +13,7 @@ from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
 from sales.presentation.container import get_container
 
-router = APIRouter(prefix="/leads", tags=["leads"])
+router = APIRouter(prefix="/leads", tags=["leads"], dependencies=[Depends(get_current_user)])
 
 
 def get_lead_query_use_case(request: Request) -> LeadQueryUseCase:
@@ -49,9 +50,10 @@ def get_leads(
 def create_lead(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: LeadCreateModel,
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        lead = lead_command_use_case.create(lead_data=data, creator_id=str(uuid4()))
+        lead = lead_command_use_case.create(lead_data=data, creator_id=current_user.salesman_id)
     except InvalidData as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
     return lead
@@ -77,10 +79,10 @@ def update_lead(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: LeadUpdateModel,
     lead_id: Annotated[str, Path],
-    editor_id: Annotated[str, Path],  # DOZMIANY wywalić!!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        lead = lead_command_use_case.update(lead_id=lead_id, editor_id=editor_id, lead_data=data)
+        lead = lead_command_use_case.update(lead_id=lead_id, editor_id=current_user.salesman_id, lead_data=data)
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except InvalidData as e:
@@ -110,10 +112,12 @@ def assign_salesman(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: AssignmentUpdateModel,
     lead_id: Annotated[str, Path],
-    creator_id: Annotated[str, Path],  # DOZMIANY wywalić!!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        note = lead_command_use_case.update_assignment(lead_id=lead_id, requestor_id=creator_id, assignment_data=data)
+        note = lead_command_use_case.update_assignment(
+            lead_id=lead_id, requestor_id=current_user.salesman_id, assignment_data=data
+        )
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     return note
@@ -139,10 +143,10 @@ def create_note(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: NoteCreateModel,
     lead_id: Annotated[str, Path],
-    creator_id: Annotated[str, Path],  # DOZMIANY wywalić!!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        note = lead_command_use_case.update_note(lead_id=lead_id, editor_id=creator_id, note_data=data)
+        note = lead_command_use_case.update_note(lead_id=lead_id, editor_id=current_user.salesman_id, note_data=data)
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     return note
