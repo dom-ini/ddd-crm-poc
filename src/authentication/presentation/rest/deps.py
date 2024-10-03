@@ -3,10 +3,11 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from authentication.infrastructure.exceptions import InvalidToken
+from authentication.infrastructure.exceptions import AccountDisabled, InvalidToken
 from authentication.infrastructure.roles import UserRole
 from authentication.infrastructure.service.base import AuthenticationService, UserReadModel
 from authentication.presentation.container import get_container
+from building_blocks.infrastructure.exceptions import ServerError
 
 security = HTTPBearer(auto_error=False)
 
@@ -28,6 +29,10 @@ def get_current_user(
         user_data = auth_service.verify_token(token)
     except InvalidToken as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message) from e
+    except AccountDisabled as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
+    except ServerError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message) from e
     return user_data
 
 

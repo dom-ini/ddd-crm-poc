@@ -20,3 +20,7 @@ class NoActiveTransaction(InfrastructureException):
 
 class ObjectAlreadyExists(InfrastructureException):
     pass
+
+
+class ServerError(InfrastructureException):
+    message = "An error occured while processing the request. Try again or contact the site administrator"

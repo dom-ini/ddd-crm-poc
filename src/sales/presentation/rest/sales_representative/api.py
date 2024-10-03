@@ -2,6 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
+from authentication.infrastructure.exceptions import AuthenticationServiceFailed, InvalidUserCreationData
+from authentication.infrastructure.service.base import AuthenticationService, UserCreateModel, UserReadModel
+from authentication.presentation.rest.deps import get_auth_service, get_current_user, is_admin
 from building_blocks.application.exceptions import ForbiddenAction, ObjectDoesNotExist
 from sales.application.sales_representative.command import SalesRepresentativeCommandUseCase
 from sales.application.sales_representative.command_model import (
@@ -25,7 +28,7 @@ def get_sr_command_use_case(request: Request) -> SalesRepresentativeCommandUseCa
     return container.sr_command_use_case
 
 
-@router.get("/", response_model=list[SalesRepresentativeReadModel])
+@router.get("/", response_model=list[SalesRepresentativeReadModel], dependencies=[Depends(is_admin)])
 def get_sales_representatives(
     sr_query_use_case: Annotated[SalesRepresentativeQueryUseCase, Depends(get_sr_query_use_case)],
 ) -> None:
@@ -33,12 +36,20 @@ def get_sales_representatives(
     return representatives
 
 
-@router.post("/", response_model=SalesRepresentativeReadModel)
+@router.post("/", response_model=SalesRepresentativeReadModel, dependencies=[Depends(is_admin)])
 def create_sales_representative(
     sr_command_use_case: Annotated[SalesRepresentativeCommandUseCase, Depends(get_sr_command_use_case)],
-    data: SalesRepresentativeCreateModel,
+    auth_service: Annotated[AuthenticationService, Depends(get_auth_service)],
+    salesman_data: SalesRepresentativeCreateModel,
+    user_data: UserCreateModel,
 ) -> None:
-    representative = sr_command_use_case.create(data)
+    representative = sr_command_use_case.create(salesman_data)
+    try:
+        auth_service.create_account(email=user_data.email, salesman_id=representative.id)
+    except InvalidUserCreationData as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
+    except AuthenticationServiceFailed as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message) from e
     return representative
 
 
@@ -47,10 +58,12 @@ def update_sales_representative(
     sr_command_use_case: Annotated[SalesRepresentativeCommandUseCase, Depends(get_sr_command_use_case)],
     representative_id: Annotated[str, Path],
     data: SalesRepresentativeUpdateModel,
-    editor_id: Annotated[str, Path],  # DOZMIANY wywalić!!!
+    current_user: Annotated[UserReadModel, Depends(get_current_user)],
 ) -> None:
     try:
-        representative = sr_command_use_case.update(representative_id=representative_id, editor_id=editor_id, data=data)
+        representative = sr_command_use_case.update(
+            representative_id=representative_id, editor_id=current_user.salesman_id, data=data
+        )
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except ObjectDoesNotExist as e:
