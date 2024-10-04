@@ -15,7 +15,7 @@ class SalesRepresentativeFileRepository(SalesRepresentativeRepository):
 
     def create(self, representative: SalesRepresentative) -> None:
         if representative.id in self.db:
-            raise ObjectAlreadyExists(f"SalesRepresentative with id={representative.id} already exists")
+            raise ObjectAlreadyExists(f"Sales representative with id={representative.id} already exists")
         self.db[representative.id] = representative
 
     def update(self, representative: SalesRepresentative) -> None:

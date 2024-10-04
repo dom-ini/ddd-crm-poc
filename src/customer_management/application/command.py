@@ -196,7 +196,7 @@ class CustomerCommandUseCase:
 
     def _verify_that_salesman_exists(self, salesman_id: str) -> None:
         if not self.sales_rep_service.salesman_exists(salesman_id):
-            raise InvalidData(f"SalesRepresentative with id={salesman_id} does not exist")
+            raise InvalidData(f"Relation manager with id={salesman_id} does not exist")
 
     def _create_company_info_if_provided(self, company_info: CompanyInfoCreateUpdateModel) -> CompanyInfo | None:
         return self._create_company_info(company_info) if company_info else None
