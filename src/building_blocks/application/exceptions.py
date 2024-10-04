@@ -29,4 +29,6 @@ class ObjectDoesNotExist(ApplicationException):
 
 
 class InvalidData(ApplicationException):
-    pass
+    def __init__(self, message: str) -> None:
+        structured_msg = [{"msg": message}]
+        super().__init__(structured_msg)
