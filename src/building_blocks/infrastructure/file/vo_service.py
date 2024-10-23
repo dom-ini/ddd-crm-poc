@@ -12,7 +12,6 @@ class FileValueObjectService(ValueObjectService):
 
     def get_all(self) -> Iterable[ReadModelT]:
         with get_read_db(self._file_path) as db:
-            print(dict(db))
             all_ids = db.keys()
             value_objects = tuple(self.read_model.from_domain(db.get(id)) for id in all_ids)
         return value_objects
