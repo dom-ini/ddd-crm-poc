@@ -24,3 +24,9 @@ class ObjectAlreadyExists(InfrastructureException):
 
 class ServerError(InfrastructureException):
     message = "An error occured while processing the request. Try again or contact the site administrator"
+
+
+class InvalidFilterField(InfrastructureException):
+    def __init__(self, field: str) -> None:
+        message = f'Invalid filter chain: "{field}"'
+        super().__init__(message)

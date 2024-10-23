@@ -15,7 +15,11 @@ from customer_management.domain.exceptions import (
     OnlyRelationManagerCanModifyCustomerData,
 )
 from customer_management.domain.value_objects.company_info import CompanyInfo
-from customer_management.domain.value_objects.customer_status import CustomerStatus, InitialStatus
+from customer_management.domain.value_objects.customer_status import (
+    CustomerStatus,
+    InitialStatus,
+    get_customer_status_type_by_name,
+)
 from customer_management.domain.value_objects.language import Language
 
 ContactPersons = Sequence[ContactPerson]
@@ -44,11 +48,12 @@ class Customer(AggregateRoot):
         id: str,
         relation_manager_id: str,
         company_info: CompanyInfo,
-        status: CustomerStatus,
+        status: str,
         contact_persons: ContactPersons,
     ) -> Self:
         customer = cls(id=id, relation_manager_id=relation_manager_id, company_info=company_info)
-        customer._status = status
+        status_object = get_customer_status_type_by_name(status)(customer)
+        customer._status = status_object
         customer._contact_persons = contact_persons
         return customer
 

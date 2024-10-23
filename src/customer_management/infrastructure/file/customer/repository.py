@@ -1,12 +1,11 @@
-import shelve
-
 from building_blocks.infrastructure.exceptions import ObjectAlreadyExists
+from building_blocks.infrastructure.file.command import FileLikeDB
 from customer_management.domain.entities.customer import Customer
 from customer_management.domain.repositories.customer import CustomerRepository
 
 
 class CustomerFileRepository(CustomerRepository):
-    def __init__(self, db: shelve.Shelf) -> None:
+    def __init__(self, db: FileLikeDB) -> None:
         self.db = db
 
     def get(self, customer_id: str) -> Customer | None:

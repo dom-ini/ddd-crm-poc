@@ -11,7 +11,7 @@ from sales.domain.entities.lead import Lead
 
 
 class LeadFileQueryService(LeadQueryService):
-    FilterServiceType = FileFilterService[Lead]
+    FilterServiceType = FileFilterService
 
     def __init__(
         self,

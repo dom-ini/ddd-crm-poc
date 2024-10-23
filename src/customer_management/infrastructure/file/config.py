@@ -1,3 +1,6 @@
-from building_blocks.infrastructure.file.config import _FILE_DB_FOLDER_PATH
+from building_blocks.infrastructure.file.config import ROOT_FILES_PATH
 
-CUSTOMERS_FILE_PATH = _FILE_DB_FOLDER_PATH / "customers"
+CUSTOMERS_PATH = ROOT_FILES_PATH / "customers"
+
+LANGUAGES_PATH = ROOT_FILES_PATH / "languages"
+COUNTRIES_PATH = ROOT_FILES_PATH / "countries"

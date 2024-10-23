@@ -35,7 +35,7 @@ class LeadQueryUseCase:
                 condition_type=FilterConditionType.EQUALS,
             ),
             FilterCondition(
-                field="salesman_id",
+                field="assigned_salesman_id",
                 value=owner_id,
                 condition_type=FilterConditionType.EQUALS,
             ),

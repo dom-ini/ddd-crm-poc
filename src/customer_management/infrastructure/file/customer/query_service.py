@@ -11,7 +11,7 @@ from customer_management.domain.entities.customer import Customer
 
 
 class CustomerFileQueryService(CustomerQueryService):
-    FilterServiceType = FileFilterService[Customer]
+    FilterServiceType = FileFilterService
 
     def __init__(self, customers_file_path: Path) -> None:
         self._file_path = customers_file_path

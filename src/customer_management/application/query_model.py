@@ -11,11 +11,24 @@ from customer_management.domain.value_objects.address import Address
 from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.company_segment import ALLOWED_COMPANY_SIZES, ALLOWED_LEGAL_FORMS
 from customer_management.domain.value_objects.contact_method import ALLOWED_CONTACT_TYPES, ContactMethod
+from customer_management.domain.value_objects.country import Country
 from customer_management.domain.value_objects.customer_status import CustomerStatusName
 from customer_management.domain.value_objects.industry import ALLOWED_INDUSTRY_NAMES
 from customer_management.domain.value_objects.language import Language
 
 faker = Faker(locale="pl_PL")
+
+
+class CountryReadModel(BaseReadModel[Country], NestedModel):
+    code: str = Field(examples=[faker.country_code()])
+    name: str = Field(examples=[faker.country()])
+
+    @classmethod
+    def from_domain(cls, entity: Country) -> Self:
+        return cls(
+            code=entity.code,
+            name=entity.name,
+        )
 
 
 class CompanyAddressReadModel(BaseReadModel[Address], NestedModel):

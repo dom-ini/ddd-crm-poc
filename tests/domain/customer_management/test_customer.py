@@ -13,6 +13,7 @@ from customer_management.domain.exceptions import (
     CustomerAlreadyArchived,
     CustomerAlreadyConverted,
     CustomerStillHasNotClosedOpportunities,
+    InvalidCustomerStatus,
     NotEnoughContactPersons,
     NotEnoughPreferredContactMethods,
     OnlyRelationManagerCanChangeStatus,
@@ -24,7 +25,7 @@ from customer_management.domain.value_objects.company_info import CompanyInfo
 from customer_management.domain.value_objects.company_segment import CompanySegment
 from customer_management.domain.value_objects.contact_method import ContactMethod
 from customer_management.domain.value_objects.country import Country
-from customer_management.domain.value_objects.customer_status import CustomerStatus, CustomerStatusName, InitialStatus
+from customer_management.domain.value_objects.customer_status import CustomerStatusName
 from customer_management.domain.value_objects.industry import Industry
 from customer_management.domain.value_objects.language import Language
 
@@ -107,11 +108,6 @@ def customer_with_contact_persons(company_info: CompanyInfo, contact_person: Con
     return customer
 
 
-@pytest.fixture()
-def initial_status(customer: Customer) -> InitialStatus:
-    return InitialStatus(customer=customer)
-
-
 def test_industry_creation_with_invalid_name_should_fail() -> None:
     with pytest.raises(ValueNotAllowed):
         Industry(name="invalid industry")
@@ -142,24 +138,37 @@ def test_customer_creation(customer: Customer, company_info: CompanyInfo) -> Non
 
 def test_customer_reconstitution(
     company_info: CompanyInfo,
-    initial_status: CustomerStatus,
     contact_person: ContactPerson,
 ) -> None:
     customer = Customer.reconstitute(
         id="customer_1",
         relation_manager_id="salesman_1",
         company_info=company_info,
-        status=initial_status,
+        status=CustomerStatusName.INITIAL,
         contact_persons=(contact_person,),
     )
     assert customer.id == "customer_1"
     assert customer.relation_manager_id == "salesman_1"
     assert customer.company_info == company_info
     assert customer.contact_persons[0].id == contact_person.id
-    assert customer.status == initial_status.name
+    assert customer.status == CustomerStatusName.INITIAL
 
 
-def test_newly_created_customer_should_have_initial_status(customer: Customer, initial_status: CustomerStatus) -> None:
+def test_customer_reconstitution_with_wrong_status_name_should_fail(
+    company_info: CompanyInfo,
+    contact_person: ContactPerson,
+) -> None:
+    with pytest.raises(InvalidCustomerStatus):
+        Customer.reconstitute(
+            id="customer_1",
+            relation_manager_id="salesman_1",
+            company_info=company_info,
+            status="invalid status",
+            contact_persons=(contact_person,),
+        )
+
+
+def test_newly_created_customer_should_have_initial_status(customer: Customer) -> None:
     assert customer.status == CustomerStatusName.INITIAL
 
 

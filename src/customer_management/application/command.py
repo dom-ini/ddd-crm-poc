@@ -176,7 +176,7 @@ class CustomerCommandUseCase:
             try:
                 customer.remove_contact_person(editor_id=editor_id, id_to_remove=contact_person_id)
             except ContactPersonDoesNotExist as e:
-                raise ObjectDoesNotExist(customer_id) from e
+                raise ObjectDoesNotExist(contact_person_id) from e
             except OnlyRelationManagerCanModifyCustomerData as e:
                 raise ForbiddenAction(e.message) from e
             uow.repository.update(customer)

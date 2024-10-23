@@ -8,6 +8,7 @@ from customer_management.domain.exceptions import (
     CannotConvertArchivedCustomer,
     CustomerAlreadyArchived,
     CustomerAlreadyConverted,
+    InvalidCustomerStatus,
 )
 
 ContactPersons = Tuple
@@ -95,3 +96,17 @@ class ArchivedStatus(CustomerStatus):
     @property
     def should_validate_contact_persons(self) -> bool:
         return False
+
+
+customerStatusNameToType: dict[str, type[CustomerStatus]] = {
+    CustomerStatusName.INITIAL: InitialStatus,
+    CustomerStatusName.CONVERTED: ConvertedStatus,
+    CustomerStatusName.ARCHIVED: ArchivedStatus,
+}
+
+
+def get_customer_status_type_by_name(status_name: str) -> CustomerStatus:
+    status_type = customerStatusNameToType.get(status_name)
+    if status_type is None:
+        raise InvalidCustomerStatus
+    return status_type

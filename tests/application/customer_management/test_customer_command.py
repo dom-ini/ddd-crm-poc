@@ -16,7 +16,7 @@ from customer_management.application.command_model import (
     CustomerUpdateModel,
     LanguageCreateUpdateModel,
 )
-from customer_management.domain.entities.customer.customer import Customer
+from customer_management.domain.entities.customer import Customer
 from customer_management.domain.exceptions import (
     CannotConvertArchivedCustomer,
     ContactPersonDoesNotExist,

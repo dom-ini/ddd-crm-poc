@@ -1,13 +1,13 @@
-import shelve
 from collections.abc import Sequence
 
 from building_blocks.infrastructure.exceptions import ObjectAlreadyExists
+from building_blocks.infrastructure.file.command import FileLikeDB
 from sales.domain.entities.opportunity import Opportunity
 from sales.domain.repositories.opportunity import OpportunityRepository
 
 
 class OpportunityFileRepository(OpportunityRepository):
-    def __init__(self, db: shelve.Shelf) -> None:
+    def __init__(self, db: FileLikeDB) -> None:
         self.db = db
 
     def get(self, opportunity_id: str) -> Opportunity | None:

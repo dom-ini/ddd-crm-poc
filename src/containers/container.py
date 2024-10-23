@@ -1,6 +1,7 @@
 from abc import ABC
 
 from authentication.infrastructure.service.base import AuthenticationService
+from building_blocks.infrastructure.sql.vo_service import SQLValueObjectService
 from customer_management.application.acl import OpportunityService, SalesRepresentativeService
 from customer_management.application.command import CustomerCommandUseCase, CustomerUnitOfWork
 from customer_management.application.query import CustomerQueryUseCase
@@ -36,6 +37,11 @@ class ApplicationContainer(ABC):
     _sr_qs: SalesRepresentativeQueryService
     _lead_qs: LeadQueryService
     _opportunity_qs: OpportunityQueryService
+
+    language_vo_service: SQLValueObjectService
+    country_vo_service: SQLValueObjectService
+    currency_vo_service: SQLValueObjectService
+    product_vo_service: SQLValueObjectService
 
     @property
     def customer_command_use_case(self) -> CustomerCommandUseCase:

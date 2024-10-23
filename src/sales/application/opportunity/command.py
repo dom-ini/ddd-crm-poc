@@ -16,7 +16,7 @@ from sales.application.opportunity.command_model import (
 )
 from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
 from sales.application.sales_representative.command import SalesRepresentativeUnitOfWork
-from sales.application.service import CustomerServiceMixin, SalesRepresentativeServiceMixin
+from sales.application.service import CustomerExistsMixin, SalesRepresentativeExistsMixin
 from sales.domain.entities.opportunity import Opportunity
 from sales.domain.exceptions import (
     AmountMustBeGreaterThanZero,
@@ -42,7 +42,7 @@ class OpportunityUnitOfWork(BaseUnitOfWork):
     repository: OpportunityRepository
 
 
-class OpportunityCommandUseCase(CustomerServiceMixin, SalesRepresentativeServiceMixin):
+class OpportunityCommandUseCase(CustomerExistsMixin, SalesRepresentativeExistsMixin):
     def __init__(
         self,
         opportunity_uow: OpportunityUnitOfWork,

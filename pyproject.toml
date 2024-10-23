@@ -29,6 +29,8 @@ firebase-admin = "^6.5.0"
 phonenumbers = "^8.13.43"
 pydantic = "^2.8.2"
 python = "^3.12"
+python-dotenv = "^1.0.1"
+sqlalchemy = "^2.0.35"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.9"
@@ -70,7 +72,10 @@ ignore-imports = "yes"
 min-similarity-lines = 6
 
 [tool.pylint-per-file-ignores]
+"/containers/" = "too-many-instance-attributes"
 "customer_status.py" = "protected-access"
+"db.py" = "not-callable"
+"models.py" = "unsubscriptable-object"
 
 [tool.pytest.ini_options]
 markers = [

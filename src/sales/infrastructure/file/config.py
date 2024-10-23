@@ -1,5 +1,8 @@
-from building_blocks.infrastructure.file.config import _FILE_DB_FOLDER_PATH
+from building_blocks.infrastructure.file.config import ROOT_FILES_PATH
 
-LEADS_FILE_PATH = _FILE_DB_FOLDER_PATH / "leads"
-SALES_REPR_FILE_PATH = _FILE_DB_FOLDER_PATH / "sales-representatives"
-OPPORTUNITIES_FILE_PATH = _FILE_DB_FOLDER_PATH / "opportunities"
+LEAD_PATH = ROOT_FILES_PATH / "leads"
+SALES_REPR_PATH = ROOT_FILES_PATH / "sales-representatives"
+OPPORTUNITIES_PATH = ROOT_FILES_PATH / "opportunities"
+
+PRODUCTS_PATH = ROOT_FILES_PATH / "products"
+CURRENCIES_PATH = ROOT_FILES_PATH / "currencies"

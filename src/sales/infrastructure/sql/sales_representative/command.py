@@ -1,0 +1,7 @@
+from building_blocks.infrastructure.sql.command import BaseSQLUnitOfWork
+from sales.application.sales_representative.command import SalesRepresentativeUnitOfWork
+from sales.infrastructure.sql.sales_representative.repository import SalesRepresentativeSQLRepository
+
+
+class SalesRepresentativeSQLUnitOfWork(BaseSQLUnitOfWork, SalesRepresentativeUnitOfWork):
+    RepositoryType = SalesRepresentativeSQLRepository

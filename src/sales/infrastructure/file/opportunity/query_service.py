@@ -11,7 +11,7 @@ from sales.domain.entities.opportunity import Opportunity
 
 
 class OpportunityFileQueryService(OpportunityQueryService):
-    FilterServiceType = FileFilterService[Opportunity]
+    FilterServiceType = FileFilterService
 
     def __init__(self, opportunities_file_path: Path) -> None:
         self._file_path = opportunities_file_path

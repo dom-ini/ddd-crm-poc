@@ -1,6 +1,6 @@
 import datetime as dt
 
-from attrs import define, field
+from attrs import define
 
 from building_blocks.domain.value_object import ValueObject
 

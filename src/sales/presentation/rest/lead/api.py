@@ -118,6 +118,8 @@ def assign_salesman(
         note = lead_command_use_case.update_assignment(
             lead_id=lead_id, requestor_id=current_user.salesman_id, assignment_data=data
         )
+    except InvalidData as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     return note

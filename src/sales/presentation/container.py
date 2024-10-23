@@ -3,6 +3,7 @@ from typing import Protocol
 from fastapi import Request
 
 from authentication.infrastructure.service.base import AuthenticationService
+from building_blocks.infrastructure.vo_service import ValueObjectService
 from sales.application.lead.command import LeadCommandUseCase
 from sales.application.lead.query import LeadQueryUseCase
 from sales.application.opportunity.command import OpportunityCommandUseCase
@@ -22,6 +23,9 @@ class SalesApplicationContainer(Protocol):
     opportunity_query_use_case: OpportunityQueryUseCase
 
     auth_service: AuthenticationService
+
+    currency_vo_service: ValueObjectService
+    product_vo_service: ValueObjectService
 
 
 def get_container(request: Request) -> SalesApplicationContainer:

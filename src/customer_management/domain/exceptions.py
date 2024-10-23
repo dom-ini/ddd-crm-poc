@@ -41,3 +41,7 @@ class OnlyRelationManagerCanModifyCustomerData(DomainException):
 
 class CustomerStillHasNotClosedOpportunities(DomainException):
     message = "Customer still has not closed opportunities"
+
+
+class InvalidCustomerStatus(DomainException):
+    message = "Given status is not a valid customer status"

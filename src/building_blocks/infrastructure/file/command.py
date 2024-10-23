@@ -15,7 +15,7 @@ class FileLikeDB(ABC, MutableMapping):
 
 
 class BaseFileUnitOfWork[RepositoryT](ABC):
-    RepositoryType: RepositoryT
+    RepositoryType: type[RepositoryT]
 
     def __init__(self, file_path: Path) -> None:
         self.repository: RepositoryT | None = None
@@ -38,6 +38,7 @@ class BaseFileUnitOfWork[RepositoryT](ABC):
         self._db.sync()
         self._snapshot = None
         self._db.close()
+        self.repository = None
         self._is_active = False
 
     def rollback(self) -> None:
@@ -46,6 +47,7 @@ class BaseFileUnitOfWork[RepositoryT](ABC):
         self._db.clear()
         self._db.update(self._snapshot)
         self._db.close()
+        self.repository = None
         self._is_active = False
 
     def _get_db(self) -> FileLikeDB:
