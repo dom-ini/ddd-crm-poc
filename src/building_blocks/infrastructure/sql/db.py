@@ -3,8 +3,7 @@ from contextlib import contextmanager
 from typing import Any, Callable, ContextManager, Self
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.orm.session import Session
 
 from building_blocks.infrastructure.sql.config import SQLALCHEMY_DB_URL
