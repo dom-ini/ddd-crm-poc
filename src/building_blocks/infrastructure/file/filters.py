@@ -20,7 +20,7 @@ def search(entity: EntityT, field: str, value: Any) -> bool:
     return value.lower().replace(" ", "") in attrgetter(field)(entity).lower().replace(" ", "")
 
 
-class FileFilterResolver(BaseFilterResolver):
+class FileFilterResolver(BaseFilterResolver[FilterFunc]):
     _filter_mapping = {
         FilterConditionType.EQUALS: equals,
         FilterConditionType.IEQUALS: iequals,
