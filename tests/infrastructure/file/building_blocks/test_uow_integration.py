@@ -1,5 +1,5 @@
 import shelve
-from collections.abc import Hashable, Iterator
+from collections.abc import Hashable
 from typing import Any
 
 import pytest
@@ -33,14 +33,6 @@ class FileUnitOfWork(BaseFileUnitOfWork[Repository], BaseUnitOfWork):
     RepositoryType = Repository
 
 
-@pytest.fixture(autouse=True)
-def cleanup_files() -> Iterator[None]:
-    yield
-    for file in TEST_DATA_FOLDER.iterdir():
-        if file.is_file():
-            file.unlink()
-
-
 @pytest.fixture()
 def uow() -> FileUnitOfWork:
     return FileUnitOfWork(file_path=TEST_DATA_PATH)
@@ -60,14 +52,14 @@ def test_commit_transaction(uow: FileUnitOfWork) -> None:
 
 def test_rollback_transaction(uow: FileUnitOfWork) -> None:
     uow.begin()
-    uow.repository.set("key1", "value1")
-    uow.repository.set("key2", "value2")
+    uow.repository.set("key3", "value1")
+    uow.repository.set("key4", "value2")
 
     uow.rollback()
 
     with shelve.open(TEST_DATA_PATH) as db:
-        assert not db.get("key1")
-        assert not db.get("key2")
+        assert not db.get("key3")
+        assert not db.get("key4")
 
 
 def test_uow_context_manager(uow: FileUnitOfWork) -> None:
