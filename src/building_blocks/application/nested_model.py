@@ -1,3 +1,5 @@
+import random
+
 from pydantic import BaseModel
 
 
@@ -6,4 +8,4 @@ class NestedModel(BaseModel):
     def get_examples(cls) -> dict:
         schema = cls.model_json_schema()
         properties = schema.get("properties", {})
-        return {key: val.get("examples", [""])[0] for key, val in properties.items()}
+        return {key: random.choice(val.get("examples", [""])) for key, val in properties.items()}
