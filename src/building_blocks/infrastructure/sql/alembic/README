@@ -1,0 +1,3 @@
+In order to auto-generate the migration, import all SQL models in `env.py` above this line:
+`target_metadata = Base.metadata`
+and then run `alembic revision --autogenerate -m <message>`
