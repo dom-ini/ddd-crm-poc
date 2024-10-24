@@ -2,7 +2,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any, Callable, ContextManager, Self
 
-from sqlalchemy import create_engine
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.orm.session import Session
 
@@ -23,21 +23,23 @@ class Base[EntityT](_Base):
         raise NotImplementedError
 
 
-class Engine:
+class DbConnectionManager:
     _factory: _InternalSessionFactory | None = None
+    _engine: Engine | None = None
 
     @classmethod
-    def get_session_factory(cls) -> _InternalSessionFactory:
+    def get_session_factory(cls, db_url) -> _InternalSessionFactory:
         if not cls._factory:
-            engine = create_engine(SQLALCHEMY_DB_URL, connect_args={"check_same_thread": False})
+            engine = create_engine(db_url, connect_args={"check_same_thread": False})
             factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
             cls._factory = factory
+            cls._engine = engine
         return cls._factory
 
 
 @contextmanager
-def get_db_session() -> Iterator[Session]:
-    session_factory = Engine.get_session_factory()
+def get_db_session(db_url: str = SQLALCHEMY_DB_URL) -> Iterator[Session]:
+    session_factory = DbConnectionManager.get_session_factory(db_url)
     db = session_factory()
     try:
         yield db
