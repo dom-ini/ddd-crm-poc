@@ -105,7 +105,7 @@ customerStatusNameToType: dict[str, type[CustomerStatus]] = {
 }
 
 
-def get_customer_status_type_by_name(status_name: str) -> CustomerStatus:
+def get_customer_status_type_by_name(status_name: str) -> type[CustomerStatus]:
     status_type = customerStatusNameToType.get(status_name)
     if status_type is None:
         raise InvalidCustomerStatus

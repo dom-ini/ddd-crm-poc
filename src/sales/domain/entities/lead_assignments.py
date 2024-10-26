@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Sequence
 
 from attrs import define, field
 
@@ -6,7 +6,7 @@ from building_blocks.domain.entity import EntityWithoutId
 from building_blocks.domain.utils.date import get_current_timestamp
 from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
 
-AssignmentHistory = Iterable[LeadAssignmentEntry]
+AssignmentHistory = Sequence[LeadAssignmentEntry]
 
 
 @define(eq=False, kw_only=True)
@@ -37,10 +37,10 @@ class LeadAssignments(EntityWithoutId):
             new_salesman_id=new_salesman_id,
             requestor_id=requestor_id,
         )
-        self._history = self._history + (assignment,)
+        self._history = (*self._history, assignment)
 
     def _create_lead_assignment(
-        self, previous_salesman_id: str, new_salesman_id: str, requestor_id: str
+        self, previous_salesman_id: str | None, new_salesman_id: str, requestor_id: str
     ) -> LeadAssignmentEntry:
         return LeadAssignmentEntry(
             previous_owner_id=previous_salesman_id,

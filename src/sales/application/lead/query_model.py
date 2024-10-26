@@ -40,7 +40,7 @@ class LeadReadModel(BaseReadModel[Lead]):
     contact_data: ContactDataReadModel = Field(examples=[ContactDataReadModel.get_examples()])
 
     @classmethod
-    def from_domain(cls: Self, entity: Lead) -> Self:
+    def from_domain(cls, entity: Lead) -> Self:
         return cls(
             id=entity.id,
             customer_id=entity.customer_id,
@@ -59,7 +59,7 @@ class AssignmentReadModel(BaseReadModel[LeadAssignmentEntry]):
     assigned_at: dt.datetime
 
     @classmethod
-    def from_domain(cls: Self, entity: LeadAssignmentEntry) -> Self:
+    def from_domain(cls, entity: LeadAssignmentEntry) -> Self:
         return cls(
             previous_owner_id=entity.previous_owner_id,
             new_owner_id=entity.new_owner_id,

@@ -19,6 +19,7 @@ Offer = Iterable[OfferItem]
 
 @define(eq=False, kw_only=True)
 class Opportunity(AggregateRoot):
+    id: str
     source: AcquisitionSource
     stage: OpportunityStage
     priority: Priority

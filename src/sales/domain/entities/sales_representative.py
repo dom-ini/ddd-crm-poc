@@ -8,6 +8,7 @@ from sales.domain.exceptions import SalesRepresentativeCanOnlyModifyItsOwnData
 
 @define(eq=False, kw_only=True)
 class SalesRepresentative(AggregateRoot):
+    id: str
     first_name: str
     last_name: str
 

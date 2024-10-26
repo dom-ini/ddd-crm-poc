@@ -2,13 +2,13 @@ from collections.abc import Iterable
 from operator import attrgetter
 from typing import Any, Callable, TypeVar
 
-from sqlalchemy import Select, func
+from sqlalchemy import ColumnElement, Select, func
 
 from building_blocks.application.filters import BaseFilterResolver, FilterCondition, FilterConditionType
 from building_blocks.infrastructure.exceptions import InvalidFilterField
 
 MainModelT = TypeVar("MainModelT")
-FilterFunc = Callable[[type[MainModelT], str, Any], bool]
+FilterFunc = Callable[[type[MainModelT], str, Any], ColumnElement[bool]]
 
 
 def _resolve_field(field_name: str, model: type[MainModelT]) -> Any:
@@ -33,17 +33,17 @@ def _resolve_field(field_name: str, model: type[MainModelT]) -> Any:
     return final_field
 
 
-def equals(model: type[MainModelT], field: str, value: Any) -> bool:
+def equals(model: type[MainModelT], field: str, value: Any) -> ColumnElement[bool]:
     model_field = _resolve_field(field_name=field, model=model)
     return model_field == value
 
 
-def iequals(model: type[MainModelT], field: str, value: Any) -> bool:
+def iequals(model: type[MainModelT], field: str, value: Any) -> ColumnElement[bool]:
     model_field = _resolve_field(field_name=field, model=model)
     return func.lower(value) == func.lower(model_field)
 
 
-def search(model: type[MainModelT], field: str, value: Any) -> bool:
+def search(model: type[MainModelT], field: str, value: Any) -> ColumnElement[bool]:
     model_field = _resolve_field(field_name=field, model=model)
     return func.replace(func.lower(model_field), " ", "").contains(func.replace(func.lower(value), " ", ""))
 

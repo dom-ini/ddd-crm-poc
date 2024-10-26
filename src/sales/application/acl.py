@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from types import TracebackType
 from typing import Protocol, Self
 
 from building_blocks.application.exceptions import ObjectDoesNotExist
@@ -16,6 +17,13 @@ class CustomerUnitOfWork(Protocol):
     repository: CustomerRepository
 
     def __enter__(self) -> Self: ...
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None: ...
 
 
 class ICustomerService(ABC):

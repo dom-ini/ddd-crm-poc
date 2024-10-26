@@ -17,6 +17,7 @@ def get_unique_contact_method_fields(contact_method: ContactMethod) -> Iterable:
 
 @define(eq=False, kw_only=True)
 class ContactPerson(Entity):
+    id: str
     first_name: str
     last_name: str
     job_title: str
@@ -48,6 +49,7 @@ class ContactPerson(Entity):
 
 @define(eq=False, kw_only=True, frozen=True)
 class ContactPersonReadOnly(ReadOnlyEntity):
+    id: str
     first_name: str
     last_name: str
     job_title: str

@@ -3,16 +3,15 @@ from contextlib import contextmanager
 from typing import Any, Callable, ContextManager, Self
 
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.orm.session import Session
 
 from building_blocks.infrastructure.sql.config import SQLALCHEMY_DB_URL
 
-_Base = declarative_base()
 _InternalSessionFactory = Callable[[], Session]
 
 
-class Base[EntityT](_Base):
+class Base[EntityT](DeclarativeBase):
     __abstract__ = True
 
     def to_domain(self) -> EntityT:
@@ -28,7 +27,7 @@ class DbConnectionManager:
     _engine: Engine | None = None
 
     @classmethod
-    def get_session_factory(cls, db_url) -> _InternalSessionFactory:
+    def get_session_factory(cls, db_url: str) -> _InternalSessionFactory:
         if not cls._factory:
             engine = create_engine(db_url, connect_args={"check_same_thread": False})
             factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -38,7 +37,7 @@ class DbConnectionManager:
 
 
 @contextmanager
-def get_db_session(db_url: str = SQLALCHEMY_DB_URL) -> Iterator[Session]:
+def get_db_session(db_url: str = SQLALCHEMY_DB_URL or "") -> Iterator[Session]:
     session_factory = DbConnectionManager.get_session_factory(db_url)
     db = session_factory()
     try:

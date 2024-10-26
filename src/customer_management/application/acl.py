@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from types import TracebackType
 from typing import Protocol, Self, TypeVar
 
 SalesRepT = TypeVar("SalesRepT")
@@ -13,6 +14,13 @@ class SalesRepresentativeUnitOfWork(Protocol):
     repository: SalesRepresentativeRepository
 
     def __enter__(self) -> Self: ...
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None: ...
 
 
 class ISalesRepresentativeService(ABC):
@@ -41,6 +49,13 @@ class OpportunityUnitOfWork(Protocol):
     repository: OpportunityRepository
 
     def __enter__(self) -> Self: ...
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None: ...
 
 
 class IOpportunityService(ABC):

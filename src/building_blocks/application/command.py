@@ -27,4 +27,4 @@ class BaseUnitOfWork(ABC):
             self.commit()
         else:
             self.rollback()
-            raise exc_value
+            raise

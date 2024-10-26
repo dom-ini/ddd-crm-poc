@@ -11,6 +11,9 @@ from sales.application.opportunity.query_service import OpportunityQueryService
 from sales.domain.entities.opportunity import Opportunity
 from sales.infrastructure.sql.opportunity.models import OfferItemModel, OpportunityModel, OpportunityNoteModel
 
+ReadModelT = type[OfferItemReadModel] | type[NoteReadModel]
+DBModelT = type[OfferItemModel] | type[OpportunityNoteModel]
+
 
 class OpportunitySQLQueryService(OpportunityQueryService):
     FilterServiceType = SQLFilterService
@@ -64,9 +67,9 @@ class OpportunitySQLQueryService(OpportunityQueryService):
             db_model=OfferItemModel,
         )
 
-    def _get_opportunity_children_entries[
-        ReadModelT, DBModelT
-    ](self, opportunity_id: str, read_model: ReadModelT, db_model: DBModelT) -> Sequence[ReadModelT]:
+    def _get_opportunity_children_entries(
+        self, opportunity_id: str, read_model: ReadModelT, db_model: DBModelT
+    ) -> Sequence[ReadModelT] | None:
         opportunity = self._get_single_opportunity(opportunity_id)
         if opportunity is None:
             return None

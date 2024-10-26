@@ -45,7 +45,7 @@ class OpportunitySQLRepository(OpportunityRepository):
 
     def get_all_by_customer(self, customer_id: str) -> Sequence[Opportunity]:
         query = select(OpportunityModel).where(OpportunityModel.customer_id == customer_id)
-        opportunities = self.db.scalars(query)
+        opportunities = tuple(self.db.scalars(query))
         return opportunities
 
     def create(self, opportunity: Opportunity) -> None:

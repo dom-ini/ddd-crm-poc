@@ -36,6 +36,7 @@ def get_unique_contact_person_fields(contact_person: ContactPerson) -> tuple:
 
 @define(eq=False, kw_only=True)
 class Customer(AggregateRoot):
+    id: str
     company_info: CompanyInfo
     _relation_manager_id: str = field(alias="relation_manager_id")
     _status: CustomerStatus = field(init=False)
@@ -118,7 +119,7 @@ class Customer(AggregateRoot):
             preferred_language=preferred_language,
             contact_methods=contact_methods,
         )
-        new_contact_persons = self._contact_persons + (contact_person,)
+        new_contact_persons = (*self._contact_persons, contact_person)
         self._set_contact_persons_if_valid(new_contact_persons)
 
     def update_contact_person(
@@ -141,7 +142,7 @@ class Customer(AggregateRoot):
             preferred_language=preferred_language,
             contact_methods=contact_methods,
         )
-        new_contact_persons = self._contact_persons[:index] + (new_contact_person,) + self._contact_persons[index + 1 :]
+        new_contact_persons = (*self._contact_persons[:index], new_contact_person, *self._contact_persons[index + 1 :])
         self._set_contact_persons_if_valid(new_contact_persons)
 
     def remove_contact_person(self, editor_id: str, id_to_remove: str) -> None:

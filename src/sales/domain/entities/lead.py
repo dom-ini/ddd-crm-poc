@@ -16,6 +16,7 @@ from sales.domain.value_objects.note import Note
 
 @define(eq=False, kw_only=True)
 class Lead(AggregateRoot):
+    id: str
     contact_data: ContactData
     source: AcquisitionSource
     _customer_id: str = field(alias="customer_id")

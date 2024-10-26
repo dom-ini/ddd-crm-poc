@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TypeVar
+from typing import Any, TypeVar
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
@@ -147,7 +147,7 @@ class OpportunityCommandUseCase(CustomerExistsMixin, SalesRepresentativeExistsMi
     def _create_priority(self, level_name: str) -> Priority:
         return self._create_constrained_value_object(Priority, level=level_name)
 
-    def _create_constrained_value_object(self, vo_type: type[ValueObjectT], **kwargs) -> ValueObjectT:
+    def _create_constrained_value_object(self, vo_type: type[ValueObjectT], **kwargs: Any) -> ValueObjectT:
         try:
             vo = vo_type(**kwargs)
         except ValueNotAllowed as e:

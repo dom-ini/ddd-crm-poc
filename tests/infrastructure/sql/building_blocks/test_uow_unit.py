@@ -5,6 +5,7 @@ import pytest
 from attrs import define
 from sqlalchemy.orm import Session
 
+from building_blocks.infrastructure.exceptions import NoActiveTransaction, TransactionAlreadyActive
 from building_blocks.infrastructure.sql.command import BaseSQLUnitOfWork
 
 
@@ -58,3 +59,20 @@ def test_rollback_rollbacks_transaction(uow: SQLUnitOfWork, mock_session: MagicM
 
     mock_session.rollback.assert_called_once()
     assert uow.repository is None
+
+
+def test_cannot_start_already_started_transaction(uow: SQLUnitOfWork) -> None:
+    uow.begin()
+
+    with pytest.raises(TransactionAlreadyActive):
+        uow.begin()
+
+
+def test_cannot_commit_without_started_transaction(uow: SQLUnitOfWork) -> None:
+    with pytest.raises(NoActiveTransaction):
+        uow.commit()
+
+
+def test_cannot_rollback_without_started_transaction(uow: SQLUnitOfWork) -> None:
+    with pytest.raises(NoActiveTransaction):
+        uow.rollback()

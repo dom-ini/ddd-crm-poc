@@ -39,7 +39,7 @@ def get_current_user(
 def is_admin(
     user_data: Annotated[UserReadModel, Depends(get_current_user)],
     auth_service: Annotated[AuthenticationService, Depends(get_auth_service)],
-) -> bool:
+) -> None:
     if not auth_service.has_role(user_data=user_data, role=UserRole.ADMIN.value):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

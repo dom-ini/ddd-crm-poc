@@ -16,7 +16,7 @@ class NoteReadModel(BaseReadModel[Note]):
     created_at: dt.datetime
 
     @classmethod
-    def from_domain(cls: Self, entity: Note) -> Self:
+    def from_domain(cls, entity: Note) -> Self:
         return cls(
             created_by_id=entity.created_by_id,
             content=entity.content,

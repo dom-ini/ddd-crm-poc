@@ -11,6 +11,9 @@ from sales.application.notes.query_model import NoteReadModel
 from sales.domain.entities.lead import Lead
 from sales.infrastructure.sql.lead.models import LeadAssignmentEntryModel, LeadModel, LeadNoteModel
 
+ReadModelT = type[AssignmentReadModel] | type[NoteReadModel]
+DBModelT = type[LeadAssignmentEntryModel] | type[LeadNoteModel]
+
 
 class LeadSQLQueryService(LeadQueryService):
     FilterServiceType = SQLFilterService
@@ -60,9 +63,9 @@ class LeadSQLQueryService(LeadQueryService):
     def get_notes(self, lead_id: str) -> Sequence[NoteReadModel] | None:
         return self._get_lead_children_entries(lead_id=lead_id, read_model=NoteReadModel, db_model=LeadNoteModel)
 
-    def _get_lead_children_entries[
-        ReadModelT, DBModelT
-    ](self, lead_id: str, read_model: ReadModelT, db_model: DBModelT) -> Sequence[ReadModelT]:
+    def _get_lead_children_entries(
+        self, lead_id: str, read_model: ReadModelT, db_model: DBModelT
+    ) -> Sequence[ReadModelT] | None:
         lead = self._get_single_lead(lead_id)
         if lead is None:
             return None
