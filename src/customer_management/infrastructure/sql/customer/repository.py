@@ -163,10 +163,3 @@ class CustomerSQLRepository(CustomerRepository):
         if data is None:
             raise ServerError("Company data of the given customer cannot be found")
         return data
-
-    def _get_address(self, address_id: str) -> AddressModel:
-        query = select(AddressModel).where(AddressModel.id == address_id)
-        address = self.db.scalar(query)
-        if address is None:
-            raise ServerError("Address of the given customer cannot be found")
-        return address
