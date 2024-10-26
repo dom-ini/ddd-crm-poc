@@ -18,7 +18,7 @@ class ForbiddenAction(ApplicationException):
     pass
 
 
-class ConfictingAction(ApplicationException):
+class ConflictingAction(ApplicationException):
     pass
 
 

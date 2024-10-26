@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Request, status as 
 
 from authentication.infrastructure.service.base import UserReadModel
 from authentication.presentation.rest.deps import get_current_user
-from building_blocks.application.exceptions import ConfictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
+from building_blocks.application.exceptions import ConflictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.infrastructure.exceptions import ServerError
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
@@ -114,7 +114,7 @@ def convert_customer(
 ) -> None:
     try:
         customer_command_use_case.convert(customer_id, requestor_id=current_user.salesman_id)
-    except ConfictingAction as e:
+    except ConflictingAction as e:
         raise HTTPException(status_code=status_code.HTTP_409_CONFLICT, detail=e.message) from e
     except ForbiddenAction as e:
         raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e
@@ -133,7 +133,7 @@ def archive_customer(
 ) -> None:
     try:
         customer_command_use_case.archive(customer_id, requestor_id=current_user.salesman_id)
-    except ConfictingAction as e:
+    except ConflictingAction as e:
         raise HTTPException(status_code=status_code.HTTP_409_CONFLICT, detail=e.message) from e
     except ForbiddenAction as e:
         raise HTTPException(status_code=status_code.HTTP_403_FORBIDDEN, detail=e.message) from e

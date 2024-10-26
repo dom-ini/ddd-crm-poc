@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from building_blocks.application.exceptions import ConfictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
+from building_blocks.application.exceptions import ConflictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import DomainException, DuplicateEntry
 from customer_management.application.command import CustomerCommandUseCase, CustomerUnitOfWork
 from customer_management.application.command_model import (
@@ -434,7 +434,7 @@ def test_convert_or_archive_correctly_raises_conflicting_action(
     customer_uow.__enter__().repository.get.return_value = mock_customer
     getattr(mock_customer, method_name).side_effect = exception
 
-    with pytest.raises(ConfictingAction):
+    with pytest.raises(ConflictingAction):
         getattr(customer_command_use_case, method_name)(customer_id="customer-1", requestor_id="salesman-1")
 
 

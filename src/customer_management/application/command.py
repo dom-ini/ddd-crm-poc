@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import ConfictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
+from building_blocks.application.exceptions import ConflictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import DuplicateEntry, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from customer_management.application.acl import IOpportunityService, ISalesRepresentativeService
 from customer_management.application.command_model import (
@@ -93,7 +93,7 @@ class CustomerCommandUseCase:
                 CustomerAlreadyConverted,
                 CannotConvertArchivedCustomer,
             ) as e:
-                raise ConfictingAction(e.message) from e
+                raise ConflictingAction(e.message) from e
             except (OnlyRelationManagerCanChangeStatus,) as e:
                 raise ForbiddenAction(e.message) from e
             except NotEnoughContactPersons as e:
@@ -108,7 +108,7 @@ class CustomerCommandUseCase:
             try:
                 customer.archive(requestor_id)
             except (CustomerAlreadyArchived,) as e:
-                raise ConfictingAction(e.message) from e
+                raise ConflictingAction(e.message) from e
             except (OnlyRelationManagerCanChangeStatus,) as e:
                 raise ForbiddenAction(e.message) from e
             uow.repository.update(customer)
