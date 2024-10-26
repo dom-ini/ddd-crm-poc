@@ -201,7 +201,7 @@ class CustomerModel(Base[Customer]):
     __tablename__ = "customer"
 
     id: Mapped[str] = mapped_column(primary_key=True, index=True)
-    relation_manager_id: Mapped[str] = mapped_column(nullable=False, index=True, primary_key=True)
+    relation_manager_id: Mapped[str] = mapped_column(nullable=False, index=True)
 
     status_name: Mapped[str] = mapped_column(nullable=False)
 
