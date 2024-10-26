@@ -1,9 +1,11 @@
 from collections.abc import Iterator
 from decimal import Decimal
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
+from building_blocks.infrastructure.file.io import get_write_db
 from customer_management.application.acl import OpportunityService, SalesRepresentativeService
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
@@ -30,10 +32,11 @@ from sales.application.opportunity.command_model import (
     OpportunityCreateModel,
     ProductCreateUpdateModel,
 )
-from sales.application.opportunity.query_model import OpportunityReadModel
+from sales.application.opportunity.query_model import OpportunityReadModel, ProductReadModel
 from sales.application.sales_representative.command import SalesRepresentativeCommandUseCase
 from sales.application.sales_representative.command_model import SalesRepresentativeCreateModel
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
+from sales.domain.value_objects.product import Product
 from sales.infrastructure.file.lead.command import LeadFileUnitOfWork
 from sales.infrastructure.file.opportunity.command import OpportunityFileUnitOfWork
 from sales.infrastructure.file.sales_representative.command import SalesRepresentativeFileUnitOfWork
@@ -43,6 +46,7 @@ LEAD_TEST_DATA_PATH = TEST_DATA_FOLDER / "test-lead"
 CUSTOMER_TEST_DATA_PATH = TEST_DATA_FOLDER / "test-customer"
 OPPORTUNITY_TEST_DATA_PATH = TEST_DATA_FOLDER / "test-opportunity"
 SALES_REPRESENTATIVE_TEST_DATA_PATH = TEST_DATA_FOLDER / "test-sales-representative"
+VO_TEST_DATA_PATH = TEST_DATA_FOLDER / "test-vo"
 
 
 @pytest.fixture(scope="session")
@@ -334,6 +338,27 @@ def opportunity_3(
     data = OpportunityCreateModel(customer_id=customer_1.id, source="referral", priority="low", offer=[offer_item])
     opportunity = opportunity_command_use_case.create(data=data, creator_id=representative_2.id)
     return opportunity
+
+
+def create_product_in_db(name: str) -> Product:
+    product = Product(name=name)
+    db = get_write_db(VO_TEST_DATA_PATH)
+    db[str(uuid4())] = product
+    db.sync()
+    db.close()
+    return product
+
+
+@pytest.fixture(scope="session")
+def product_1() -> ProductReadModel:
+    product = create_product_in_db("product 1")
+    return ProductReadModel.from_domain(product)
+
+
+@pytest.fixture(scope="session")
+def product_2() -> ProductReadModel:
+    product = create_product_in_db("product 2")
+    return ProductReadModel.from_domain(product)
 
 
 @pytest.fixture(scope="session", autouse=True)
