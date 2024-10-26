@@ -28,7 +28,7 @@ def test_begin_starts_transaction(uow: FileUnitOfWork) -> None:
     uow.begin()
 
     assert uow._is_active
-    assert uow.repository is not None
+    assert isinstance(uow.repository, DummyRepository)
     assert uow._snapshot is not None
 
 

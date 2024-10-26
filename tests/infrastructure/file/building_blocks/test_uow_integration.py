@@ -25,9 +25,6 @@ class Repository:
     def set(self, key: Hashable, value: Any) -> None:
         self.db[key] = value
 
-    def remove(self, key: Hashable) -> None:
-        self.db.pop(key)
-
 
 class FileUnitOfWork(BaseFileUnitOfWork[Repository], BaseUnitOfWork):
     RepositoryType = Repository
