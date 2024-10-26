@@ -22,6 +22,8 @@ def _resolve_field(field_name: str, model: type[MainModelT]) -> Any:
             final_field = attrgetter(nested_field_name)(base_model)
             break
         except AttributeError as e:
+            if not hasattr(base_model, current_field):
+                raise InvalidFilterField(field=field_name) from e
             relationship = attrgetter(current_field)(base_model)
             if not hasattr(relationship, "mapper"):
                 raise InvalidFilterField(field=field_name) from e
