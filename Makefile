@@ -14,7 +14,9 @@ pylint:
 	poetry run pylint src --extension-pkg-whitelist='pydantic'
 black:
 	poetry run black ./src
-lint: black flake8 isort ruff pylint toml_sort
+mypy:
+	poetry run mypy --install-types --non-interactive src
+lint: black flake8 isort ruff pylint toml_sort mypy
 lint_tests:
 	poetry run black ./tests
 	poetry run isort ./tests
