@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from building_blocks.application.command import BaseUnitOfWork
-from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
+from building_blocks.application.exceptions import ConflictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from sales.application.acl import ICustomerService
 from sales.application.lead.command_model import (
@@ -19,6 +19,7 @@ from sales.domain.entities.lead import Lead
 from sales.domain.exceptions import (
     CanCreateOnlyOneLeadPerCustomer,
     EmailOrPhoneNumberShouldBeSet,
+    LeadAlreadyAssignedToSalesman,
     LeadCanBeCreatedOnlyForInitialCustomer,
     OnlyOwnerCanEditNotes,
     OnlyOwnerCanModifyLeadData,
@@ -103,6 +104,8 @@ class LeadCommandUseCase(CustomerExistsMixin, SalesRepresentativeExistsMixin):
                 )
             except UnauthorizedLeadOwnerChange as e:
                 raise ForbiddenAction(e.message) from e
+            except LeadAlreadyAssignedToSalesman as e:
+                raise ConflictingAction(e.message) from e
             uow.repository.update(lead)
         return AssignmentReadModel.from_domain(lead.most_recent_assignment)
 

@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
+from building_blocks.application.exceptions import ConflictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.domain.exceptions import DomainException, InvalidEmailAddress, InvalidPhoneNumber, ValueNotAllowed
 from sales.application.lead.command import LeadCommandUseCase, LeadUnitOfWork
 from sales.application.lead.command_model import (
@@ -14,6 +14,7 @@ from sales.application.lead.command_model import (
 from sales.domain.entities.lead import Lead
 from sales.domain.exceptions import (
     EmailOrPhoneNumberShouldBeSet,
+    LeadAlreadyAssignedToSalesman,
     OnlyOwnerCanEditNotes,
     OnlyOwnerCanModifyLeadData,
     UnauthorizedLeadOwnerChange,
@@ -181,6 +182,19 @@ def test_update_lead_assignment_with_invalid_salesman_id_should_fail(
         lead_command_use_case.update_assignment(lead_id="lead id", requestor_id="salesman id", assignment_data=data)
 
     lead_uow.__enter__().repository.update.assert_not_called()
+
+
+def test_update_lead_assignment_with_already_assigned_salesman_id_should_fail(
+    lead_uow: LeadUnitOfWork,
+    lead_command_use_case: LeadCommandUseCase,
+    mock_lead: MagicMock,
+) -> None:
+    lead_uow.__enter__().repository.get.return_value = mock_lead
+    mock_lead.assign_salesman.side_effect = LeadAlreadyAssignedToSalesman
+    data = AssignmentUpdateModel(new_salesman_id="salesman id")
+
+    with pytest.raises(ConflictingAction):
+        lead_command_use_case.update_assignment(lead_id="lead id", requestor_id="salesman id", assignment_data=data)
 
 
 @pytest.mark.parametrize(

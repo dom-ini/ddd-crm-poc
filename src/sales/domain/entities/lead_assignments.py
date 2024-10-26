@@ -4,6 +4,7 @@ from attrs import define, field
 
 from building_blocks.domain.entity import EntityWithoutId
 from building_blocks.domain.utils.date import get_current_timestamp
+from sales.domain.exceptions import LeadAlreadyAssignedToSalesman
 from sales.domain.value_objects.lead_assignment_entry import LeadAssignmentEntry
 
 AssignmentHistory = Sequence[LeadAssignmentEntry]
@@ -32,6 +33,8 @@ class LeadAssignments(EntityWithoutId):
 
     def change_assigned_salesman(self, new_salesman_id: str, requestor_id: str) -> None:
         assigned_from = self.currently_assigned_salesman_id
+        if assigned_from == new_salesman_id:
+            raise LeadAlreadyAssignedToSalesman
         assignment = self._create_lead_assignment(
             previous_salesman_id=assigned_from,
             new_salesman_id=new_salesman_id,

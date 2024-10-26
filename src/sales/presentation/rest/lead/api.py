@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
 from authentication.infrastructure.service.base import UserReadModel
 from authentication.presentation.rest.deps import get_current_user
-from building_blocks.application.exceptions import ForbiddenAction, InvalidData, ObjectDoesNotExist
+from building_blocks.application.exceptions import ConflictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from sales.application.lead.command import LeadCommandUseCase
 from sales.application.lead.command_model import AssignmentUpdateModel, LeadCreateModel, LeadUpdateModel
 from sales.application.lead.query import LeadQueryUseCase
@@ -122,6 +122,8 @@ def assign_salesman(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.message) from e
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
+    except ConflictingAction as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=e.message) from e
     return note
 
 

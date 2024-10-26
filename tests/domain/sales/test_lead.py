@@ -9,6 +9,7 @@ from sales.domain.entities.lead_assignments import LeadAssignments
 from sales.domain.entities.notes import Notes
 from sales.domain.exceptions import (
     CanCreateOnlyOneLeadPerCustomer,
+    LeadAlreadyAssignedToSalesman,
     LeadCanBeCreatedOnlyForInitialCustomer,
     OnlyOwnerCanEditNotes,
     OnlyOwnerCanModifyLeadData,
@@ -244,6 +245,13 @@ def test_assignment_history_is_properly_saved(lead: Lead) -> None:
     assert len(lead.assignment_history) == 2
     assert lead.assignment_history[0].new_owner_id == "salesman_1"
     assert lead.assignment_history[1].new_owner_id == "salesman_2"
+
+
+def test_assigning_lead_to_current_owner_should_fail(lead: Lead) -> None:
+    lead.assign_salesman(new_salesman_id=lead.created_by_salesman_id, requestor_id=lead.created_by_salesman_id)
+
+    with pytest.raises(LeadAlreadyAssignedToSalesman):
+        lead.assign_salesman(new_salesman_id=lead.assigned_salesman_id, requestor_id=lead.assigned_salesman_id)
 
 
 def test_ensure_one_lead_per_customer_should_not_fail_when_lead_does_not_exist(lead_repo: MagicMock) -> None:
