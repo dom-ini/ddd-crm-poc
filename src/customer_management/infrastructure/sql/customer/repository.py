@@ -53,6 +53,7 @@ class CustomerSQLRepository(CustomerRepository):
         )
         try:
             self.db.add_all([customer_in_db, company_data_in_db])
+            self.db.flush()
         except IntegrityError as e:
             raise ObjectAlreadyExists(f"Customer with id={customer.id} already exists") from e
 

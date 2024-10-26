@@ -23,6 +23,7 @@ class SalesRepresentativeSQLRepository(SalesRepresentativeRepository):
         representative_in_db = SalesRepresentativeModel.from_domain(representative)
         try:
             self.db.add(representative_in_db)
+            self.db.flush()
         except IntegrityError as e:
             raise ObjectAlreadyExists(f"Sales representative with id={representative.id} already exists") from e
 

@@ -45,6 +45,7 @@ class LeadSQLRepository(LeadRepository):
         lead_in_db = LeadModel.from_domain(lead)
         try:
             self.db.add(lead_in_db)
+            self.db.flush()
         except IntegrityError as e:
             raise ObjectAlreadyExists(f"Lead with id={lead.id} already exists") from e
 

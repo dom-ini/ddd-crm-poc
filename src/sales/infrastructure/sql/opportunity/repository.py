@@ -53,6 +53,7 @@ class OpportunitySQLRepository(OpportunityRepository):
         offer_items_in_db = self._create_offer_items(opportunity.offer, opportunity_id=opportunity.id)
         try:
             self.db.add_all([opportunity_in_db, *offer_items_in_db])
+            self.db.flush()
         except IntegrityError as e:
             raise ObjectAlreadyExists(f"Opportunity with id={opportunity.id} already exists") from e
 
