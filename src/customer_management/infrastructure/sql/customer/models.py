@@ -205,7 +205,7 @@ class CustomerModel(Base[Customer]):
 
     status_name: Mapped[str] = mapped_column(nullable=False)
 
-    company_data: Mapped["CompanyDataModel"] = relationship(back_populates="customer", lazy="selectin")
+    company_data: Mapped["CompanyDataModel"] = relationship(back_populates="customer")
     contact_persons: Mapped[list["ContactPersonModel"]] = relationship(backref="customer")
 
     @hybrid_property
