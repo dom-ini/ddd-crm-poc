@@ -34,7 +34,7 @@ class LeadSQLRepository(LeadRepository):
             return None
         return lead.to_domain()
 
-    def get_for_customer(self, customer_id: str) -> Lead | None:
+    def get_by_customer(self, customer_id: str) -> Lead | None:
         query = select(LeadModel).where(LeadModel.customer_id == customer_id)
         lead = self.db.scalar(query)
         if not lead:

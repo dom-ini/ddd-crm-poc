@@ -247,13 +247,13 @@ def test_assignment_history_is_properly_saved(lead: Lead) -> None:
 
 
 def test_ensure_one_lead_per_customer_should_not_fail_when_lead_does_not_exist(lead_repo: MagicMock) -> None:
-    lead_repo.get_for_customer.return_value = None
+    lead_repo.get_by_customer.return_value = None
 
     ensure_one_lead_per_customer(lead_repo=lead_repo, customer_id="customer id")
 
 
 def test_ensure_one_lead_per_customer_should_fail_if_lead_already_exists(lead_repo: MagicMock) -> None:
-    lead_repo.get_for_customer.return_value = MagicMock()
+    lead_repo.get_by_customer.return_value = MagicMock()
 
     with pytest.raises(CanCreateOnlyOneLeadPerCustomer):
         ensure_one_lead_per_customer(lead_repo=lead_repo, customer_id="customer id")

@@ -151,7 +151,7 @@ def test_create_lead_should_fail_if_customer_has_not_initial_status(
     lead_uow: LeadUnitOfWork,
     lead_command_use_case: LeadCommandUseCase,
 ) -> None:
-    lead_uow.__enter__().repository.get_for_customer.return_value = None
+    lead_uow.__enter__().repository.get_by_customer.return_value = None
     lead_command_use_case.customer_service.get_customer_status.return_value = SalesCustomerStatusName.CONVERTED
     data = LeadCreateModel(
         customer_id="customer-1",

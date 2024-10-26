@@ -132,7 +132,7 @@ def test_create_opportunity_should_fail_if_customer_has_not_converted_status(
     opportunity_uow: OpportunityUnitOfWork,
     opportunity_command_use_case: OpportunityCommandUseCase,
 ) -> None:
-    opportunity_uow.__enter__().repository.get_for_customer.return_value = None
+    opportunity_uow.__enter__().repository.get_by_customer.return_value = None
     opportunity_command_use_case.customer_service.get_customer_status.return_value = SalesCustomerStatusName.INITIAL
     data = OpportunityCreateModel(
         customer_id="customer_1",

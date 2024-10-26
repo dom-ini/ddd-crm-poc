@@ -12,7 +12,7 @@ class LeadFileRepository(LeadRepository):
         lead = self.db.get(lead_id)
         return lead
 
-    def get_for_customer(self, customer_id: str) -> Lead | None:
+    def get_by_customer(self, customer_id: str) -> Lead | None:
         for lead in self.db.values():
             if lead.customer_id == customer_id:
                 return lead

@@ -4,7 +4,7 @@ from sales.domain.service.shared import SalesCustomerStatusName
 
 
 def ensure_one_lead_per_customer(lead_repo: LeadRepository, customer_id: str) -> None:
-    if lead_repo.get_for_customer(customer_id) is not None:
+    if lead_repo.get_by_customer(customer_id) is not None:
         raise CanCreateOnlyOneLeadPerCustomer
 
 
