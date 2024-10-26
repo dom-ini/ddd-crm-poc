@@ -102,7 +102,12 @@ class LeadModel(Base[Lead]):
 
     @hybrid_property
     def contact_data(self) -> SimpleNamespace:
-        return SimpleNamespace(phone=self.contact_data_phone, email=self.contact_data_email)
+        return SimpleNamespace(
+            first_name=self.contact_data_first_name,
+            last_name=self.contact_data_last_name,
+            phone=self.contact_data_phone,
+            email=self.contact_data_email,
+        )
 
     def to_domain(self) -> Lead:
         contact_data = ContactData(
