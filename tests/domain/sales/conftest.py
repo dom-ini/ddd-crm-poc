@@ -6,7 +6,7 @@ from sales.domain.value_objects.acquisition_source import AcquisitionSource
 from sales.domain.value_objects.note import Note
 
 
-@pytest.fixture
+@pytest.fixture()
 def source() -> AcquisitionSource:
     return AcquisitionSource(name="ads")
 

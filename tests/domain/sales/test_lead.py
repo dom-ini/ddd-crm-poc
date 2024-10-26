@@ -27,7 +27,7 @@ def lead_repo() -> MagicMock:
     return MagicMock()
 
 
-@pytest.fixture
+@pytest.fixture()
 def contact_data() -> ContactData:
     return ContactData(
         first_name="Jan",
@@ -37,7 +37,7 @@ def contact_data() -> ContactData:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def contact_data_2() -> ContactData:
     return ContactData(
         first_name="Piotr",
@@ -47,7 +47,7 @@ def contact_data_2() -> ContactData:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def lead(contact_data: ContactData, source: AcquisitionSource) -> Lead:
     return Lead.make(
         id="lead_1",
