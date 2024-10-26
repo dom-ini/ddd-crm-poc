@@ -156,6 +156,7 @@ class OpportunityModel(Base[Opportunity]):
         return cls(
             id=entity.id,
             created_by_id=entity.created_by_id,
+            created_at=entity.created_at,
             customer_id=entity.customer_id,
             owner_id=entity.owner_id,
             source_name=entity.source.name,
