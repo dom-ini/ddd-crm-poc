@@ -69,7 +69,8 @@ class CustomerCommandUseCase:
         return CustomerReadModel.from_domain(customer)
 
     def update(self, customer_id: str, editor_id: str, customer_data: CustomerUpdateModel) -> CustomerReadModel:
-        self._verify_that_salesman_exists(customer_data.relation_manager_id)
+        if customer_data.relation_manager_id is not None:
+            self._verify_that_salesman_exists(customer_data.relation_manager_id)
 
         with self.customer_uow as uow:
             customer = self._get_customer(uow=uow, customer_id=customer_id)
