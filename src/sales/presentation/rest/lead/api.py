@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 from authentication.infrastructure.service.base import UserReadModel
 from authentication.presentation.rest.deps import get_current_user
 from building_blocks.application.exceptions import ConflictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
+from building_blocks.presentation.responses import BasicErrorResponse, UnprocessableEntityResponse
 from sales.application.lead.command import LeadCommandUseCase
 from sales.application.lead.command_model import AssignmentUpdateModel, LeadCreateModel, LeadUpdateModel
 from sales.application.lead.query import LeadQueryUseCase
@@ -46,7 +47,11 @@ def get_leads(
     return leads
 
 
-@router.post("/", response_model=LeadReadModel)
+@router.post(
+    "/",
+    response_model=LeadReadModel,
+    responses={status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": UnprocessableEntityResponse}},
+)
 def create_lead(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: LeadCreateModel,
@@ -62,6 +67,7 @@ def create_lead(
 @router.get(
     "/{lead_id}",
     response_model=LeadReadModel,
+    responses={status.HTTP_404_NOT_FOUND: {"model": BasicErrorResponse}},
 )
 def get_single_lead(
     lead_query_use_case: Annotated[LeadQueryUseCase, Depends(get_lead_query_use_case)],
@@ -74,7 +80,15 @@ def get_single_lead(
     return lead
 
 
-@router.put("/{lead_id}", response_model=LeadReadModel)
+@router.put(
+    "/{lead_id}",
+    response_model=LeadReadModel,
+    responses={
+        status.HTTP_403_FORBIDDEN: {"model": BasicErrorResponse},
+        status.HTTP_404_NOT_FOUND: {"model": BasicErrorResponse},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": UnprocessableEntityResponse},
+    },
+)
 def update_lead(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: LeadUpdateModel,
@@ -95,6 +109,9 @@ def update_lead(
 @router.get(
     "/{lead_id}/assignments",
     response_model=list[AssignmentReadModel],
+    responses={
+        status.HTTP_404_NOT_FOUND: {"model": BasicErrorResponse},
+    },
 )
 def get_lead_assignments(
     lead_query_use_case: Annotated[LeadQueryUseCase, Depends(get_lead_query_use_case)],
@@ -107,7 +124,16 @@ def get_lead_assignments(
     return assignments
 
 
-@router.post("/{lead_id}/assignments", response_model=AssignmentReadModel)
+@router.post(
+    "/{lead_id}/assignments",
+    response_model=AssignmentReadModel,
+    responses={
+        status.HTTP_403_FORBIDDEN: {"model": BasicErrorResponse},
+        status.HTTP_404_NOT_FOUND: {"model": BasicErrorResponse},
+        status.HTTP_409_CONFLICT: {"model": BasicErrorResponse},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": UnprocessableEntityResponse},
+    },
+)
 def assign_salesman(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: AssignmentUpdateModel,
@@ -124,12 +150,17 @@ def assign_salesman(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except ConflictingAction as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=e.message) from e
+    except ObjectDoesNotExist as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
     return note
 
 
 @router.get(
     "/{lead_id}/notes",
     response_model=list[NoteReadModel],
+    responses={
+        status.HTTP_404_NOT_FOUND: {"model": BasicErrorResponse},
+    },
 )
 def get_lead_notes(
     lead_query_use_case: Annotated[LeadQueryUseCase, Depends(get_lead_query_use_case)],
@@ -142,7 +173,14 @@ def get_lead_notes(
     return notes
 
 
-@router.post("/{lead_id}/notes", response_model=NoteReadModel)
+@router.post(
+    "/{lead_id}/notes",
+    response_model=NoteReadModel,
+    responses={
+        status.HTTP_403_FORBIDDEN: {"model": BasicErrorResponse},
+        status.HTTP_404_NOT_FOUND: {"model": BasicErrorResponse},
+    },
+)
 def create_note(
     lead_command_use_case: Annotated[LeadCommandUseCase, Depends(get_lead_command_use_case)],
     data: NoteCreateModel,
@@ -153,4 +191,6 @@ def create_note(
         note = lead_command_use_case.update_note(lead_id=lead_id, editor_id=current_user.salesman_id, note_data=data)
     except ForbiddenAction as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
+    except ObjectDoesNotExist as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
     return note
