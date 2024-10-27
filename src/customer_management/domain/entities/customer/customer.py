@@ -194,10 +194,10 @@ class Customer(AggregateRoot):
 
     def _get_contact_person_by_id(self, contact_person_id: str) -> tuple[int, ContactPerson]:
         persons_ids = ((i, person) for i, person in enumerate(self._contact_persons) if person.id == contact_person_id)
-        id_, contact_person = next(persons_ids, (None, None))
-        if id_ is None:
+        index, contact_person = next(persons_ids, (None, None))
+        if index is None:
             raise ContactPersonDoesNotExist
-        return id_, contact_person
+        return index, contact_person
 
     def _create_contact_person(
         self,
