@@ -1,7 +1,10 @@
-class ApplicationException(Exception):
-    message: str = ""
+from typing import Any
 
-    def __init__(self, message: str | None = None) -> None:
+
+class ApplicationException(Exception):
+    message: Any = ""
+
+    def __init__(self, message: Any = None) -> None:
         if message is not None:
             self.message = message
         super().__init__(message)
@@ -30,5 +33,5 @@ class ObjectDoesNotExist(ApplicationException):
 
 class InvalidData(ApplicationException):
     def __init__(self, message: str) -> None:
-        structured_msg = str([{"msg": message}])
+        structured_msg = [{"msg": message}]
         super().__init__(structured_msg)
