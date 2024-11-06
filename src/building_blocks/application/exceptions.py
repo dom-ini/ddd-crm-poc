@@ -10,7 +10,7 @@ class ApplicationException(Exception):
         super().__init__(message)
 
     def __str__(self) -> str:
-        return self.message
+        return str(self.message)
 
 
 class InvalidFilterType(ApplicationException):
