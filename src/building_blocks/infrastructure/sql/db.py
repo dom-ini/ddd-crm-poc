@@ -27,10 +27,10 @@ class DbConnectionManager:
     _engine: Engine | None = None
 
     @classmethod
-    def get_session_factory(cls, db_url: str) -> _InternalSessionFactory:
+    def get_session_factory(cls, db_url: str, expire_on_commit: bool = True) -> _InternalSessionFactory:
         if not cls._factory:
             engine = create_engine(db_url, connect_args={"check_same_thread": False})
-            factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            factory = sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=expire_on_commit)
             cls._factory = factory
             cls._engine = engine
         return cls._factory
