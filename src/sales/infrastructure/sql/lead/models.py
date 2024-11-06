@@ -97,7 +97,7 @@ class LeadModel(Base[Lead]):
             .order_by(LeadAssignmentEntryModel.assigned_at.desc())
             .limit(1)
             .correlate(cls)
-            .as_scalar()
+            .scalar_subquery()
         )
 
     @hybrid_property
