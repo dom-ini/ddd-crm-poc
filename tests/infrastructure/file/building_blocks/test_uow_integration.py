@@ -7,11 +7,11 @@ from attrs import define
 
 from building_blocks.application.command import BaseUnitOfWork
 from building_blocks.infrastructure.file.command import BaseFileUnitOfWork, FileLikeDB
-from tests.infrastructure.file.conftest import TEST_DATA_FOLDER
+from tests.fixtures.file.db_fixtures import FILE_TEST_DATA_FOLDER
 
 pytestmark = pytest.mark.integration
 
-TEST_DATA_PATH = TEST_DATA_FOLDER / "test-uow"
+TEST_DATA_PATH = FILE_TEST_DATA_FOLDER / "test-uow"
 
 
 class DummyException(Exception):

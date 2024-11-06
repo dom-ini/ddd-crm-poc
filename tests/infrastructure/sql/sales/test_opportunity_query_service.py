@@ -46,20 +46,19 @@ def test_get_all(
 def test_get_filtered(
     query_service: OpportunitySQLQueryService,
     opportunity_1: OpportunityReadModel,
-    opportunity_2: OpportunityReadModel,
-    representative_1: SalesRepresentativeReadModel,
+    representative_3: SalesRepresentativeReadModel,
 ) -> None:
     filters = [
         FilterCondition(
             field="owner_id",
-            value=representative_1.id,
+            value=representative_3.id,
             condition_type=FilterConditionType.EQUALS,
         )
     ]
     opportunities = query_service.get_filtered(filters)
 
     fetched_opportunities_ids = set(opportunity.id for opportunity in opportunities)
-    assert fetched_opportunities_ids == {opportunity_1.id, opportunity_2.id}
+    assert fetched_opportunities_ids == {opportunity_1.id}
 
 
 def test_get_notes(

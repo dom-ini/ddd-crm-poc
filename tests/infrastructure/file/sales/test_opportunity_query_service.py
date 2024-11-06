@@ -7,7 +7,7 @@ from sales.application.opportunity.command_model import OfferItemCreateUpdateMod
 from sales.application.opportunity.query_model import OpportunityReadModel
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
 from sales.infrastructure.file.opportunity.query_service import OpportunityFileQueryService
-from tests.infrastructure.file.conftest import OPPORTUNITY_TEST_DATA_PATH
+from tests.fixtures.file.db_fixtures import FILE_OPPORTUNITY_TEST_DATA_PATH
 
 
 @pytest.fixture()
@@ -21,7 +21,7 @@ def all_opportunities(
 
 @pytest.fixture()
 def query_service() -> OpportunityFileQueryService:
-    return OpportunityFileQueryService(opportunities_file_path=OPPORTUNITY_TEST_DATA_PATH)
+    return OpportunityFileQueryService(opportunities_file_path=FILE_OPPORTUNITY_TEST_DATA_PATH)
 
 
 def test_get_opportunity(query_service: OpportunityFileQueryService, opportunity_1: OpportunityReadModel) -> None:

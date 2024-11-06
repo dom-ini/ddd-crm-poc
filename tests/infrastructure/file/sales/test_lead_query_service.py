@@ -6,7 +6,7 @@ from building_blocks.application.filters import FilterCondition, FilterCondition
 from sales.application.lead.query_model import LeadReadModel
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
 from sales.infrastructure.file.lead.query_service import LeadFileQueryService
-from tests.infrastructure.file.conftest import LEAD_TEST_DATA_PATH
+from tests.fixtures.file.db_fixtures import FILE_LEAD_TEST_DATA_PATH
 
 pytestmark = pytest.mark.integration
 
@@ -18,7 +18,7 @@ def all_leads(lead_1: LeadReadModel, lead_2: LeadReadModel) -> Sequence[LeadRead
 
 @pytest.fixture()
 def query_service() -> LeadFileQueryService:
-    return LeadFileQueryService(leads_file_path=LEAD_TEST_DATA_PATH)
+    return LeadFileQueryService(leads_file_path=FILE_LEAD_TEST_DATA_PATH)
 
 
 def test_get_lead(query_service: LeadFileQueryService, lead_1: LeadReadModel) -> None:

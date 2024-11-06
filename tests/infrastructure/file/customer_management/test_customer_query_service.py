@@ -7,7 +7,7 @@ from customer_management.application.command_model import ContactPersonCreateMod
 from customer_management.application.query_model import CustomerReadModel
 from customer_management.infrastructure.file.customer.query_service import CustomerFileQueryService
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
-from tests.infrastructure.file.conftest import CUSTOMER_TEST_DATA_PATH
+from tests.fixtures.file.db_fixtures import FILE_CUSTOMER_TEST_DATA_PATH
 
 
 @pytest.fixture()
@@ -21,7 +21,7 @@ def all_customers(
 
 @pytest.fixture()
 def query_service() -> CustomerFileQueryService:
-    return CustomerFileQueryService(customers_file_path=CUSTOMER_TEST_DATA_PATH)
+    return CustomerFileQueryService(customers_file_path=FILE_CUSTOMER_TEST_DATA_PATH)
 
 
 def test_get_customer(query_service: CustomerFileQueryService, customer_1: CustomerReadModel) -> None:

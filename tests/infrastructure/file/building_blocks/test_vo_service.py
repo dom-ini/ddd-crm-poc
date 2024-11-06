@@ -4,14 +4,14 @@ import pytest
 
 from building_blocks.infrastructure.file.vo_service import FileValueObjectService
 from sales.application.opportunity.query_model import ProductReadModel
-from tests.infrastructure.file.conftest import VO_TEST_DATA_PATH
+from tests.fixtures.file.db_fixtures import FILE_VO_TEST_DATA_PATH
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.fixture()
 def vo_service() -> FileValueObjectService:
-    return FileValueObjectService(file_path=VO_TEST_DATA_PATH, read_model=ProductReadModel)
+    return FileValueObjectService(file_path=FILE_VO_TEST_DATA_PATH, read_model=ProductReadModel)
 
 
 @pytest.fixture()

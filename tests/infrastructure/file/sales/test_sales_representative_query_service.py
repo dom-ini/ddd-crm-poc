@@ -4,7 +4,7 @@ import pytest
 
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
 from sales.infrastructure.file.sales_representative.query_service import SalesRepresentativeFileQueryService
-from tests.infrastructure.file.conftest import SALES_REPRESENTATIVE_TEST_DATA_PATH
+from tests.fixtures.file.db_fixtures import FILE_SALES_REPRESENTATIVE_TEST_DATA_PATH
 
 pytestmark = pytest.mark.integration
 
@@ -20,7 +20,7 @@ def all_srs(
 
 @pytest.fixture()
 def query_service() -> SalesRepresentativeFileQueryService:
-    return SalesRepresentativeFileQueryService(sr_file_path=SALES_REPRESENTATIVE_TEST_DATA_PATH)
+    return SalesRepresentativeFileQueryService(sr_file_path=FILE_SALES_REPRESENTATIVE_TEST_DATA_PATH)
 
 
 def test_get_sr(
