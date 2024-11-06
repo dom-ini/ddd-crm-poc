@@ -65,7 +65,7 @@ def create_sales_representative(
 
 
 @router.put(
-    "/",
+    "/{representative_id}",
     response_model=SalesRepresentativeReadModel,
     responses={
         status.HTTP_403_FORBIDDEN: {"model": BasicErrorResponse},
