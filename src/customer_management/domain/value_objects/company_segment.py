@@ -6,7 +6,7 @@ from building_blocks.domain.attrs_validators import attrs_value_in
 from building_blocks.domain.value_object import ValueObject
 
 CompanySize = Literal["micro", "small", "medium", "large"]
-LegalForm = Literal["sole proprietorship", "partnership", "limited", "other"]
+LegalForm = Literal["sole proprietorship", "partnership", "limited", "joint-stock", "other"]
 
 ALLOWED_COMPANY_SIZES = get_args(CompanySize)
 ALLOWED_LEGAL_FORMS = get_args(LegalForm)
