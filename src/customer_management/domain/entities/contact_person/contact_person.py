@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 
 from attrs import Attribute, define, field
 
@@ -8,7 +8,7 @@ from customer_management.domain.entities.contact_person.validators import at_lea
 from customer_management.domain.value_objects.contact_method import ContactMethod
 from customer_management.domain.value_objects.language import Language
 
-ContactMethods = Iterable[ContactMethod]
+ContactMethods = Sequence[ContactMethod]
 
 
 def get_unique_contact_method_fields(contact_method: ContactMethod) -> Iterable:
