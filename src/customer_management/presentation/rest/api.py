@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from building_blocks.presentation.responses import BasicErrorResponse
+from building_blocks.presentation.rest.responses import BasicErrorResponse
 from customer_management.presentation.rest.customer.api import router as customer_router
 from customer_management.presentation.rest.value_objects.api import router as vo_router
 

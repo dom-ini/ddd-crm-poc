@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from building_blocks.presentation.responses import BasicErrorResponse
+from building_blocks.presentation.rest.responses import BasicErrorResponse
 from sales.presentation.rest.lead.api import router as lead_router
 from sales.presentation.rest.opportunity.api import router as opportunity_router
 from sales.presentation.rest.sales_representative.api import router as sr_router

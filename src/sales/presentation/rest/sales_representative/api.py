@@ -6,7 +6,7 @@ from authentication.infrastructure.exceptions import AuthenticationServiceFailed
 from authentication.infrastructure.service.base import AuthenticationService, UserCreateModel, UserReadModel
 from authentication.presentation.rest.deps import get_auth_service, get_current_user, is_admin
 from building_blocks.application.exceptions import ForbiddenAction, ObjectDoesNotExist
-from building_blocks.presentation.responses import BasicErrorResponse, UnprocessableEntityResponse
+from building_blocks.presentation.rest.responses import BasicErrorResponse, UnprocessableEntityResponse
 from sales.application.sales_representative.command import SalesRepresentativeCommandUseCase
 from sales.application.sales_representative.command_model import (
     SalesRepresentativeCreateModel,

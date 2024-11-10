@@ -6,7 +6,7 @@ from authentication.infrastructure.service.base import UserReadModel
 from authentication.presentation.rest.deps import get_current_user
 from building_blocks.application.exceptions import ConflictingAction, ForbiddenAction, InvalidData, ObjectDoesNotExist
 from building_blocks.infrastructure.exceptions import ServerError
-from building_blocks.presentation.responses import BasicErrorResponse, UnprocessableEntityResponse
+from building_blocks.presentation.rest.responses import BasicErrorResponse, UnprocessableEntityResponse
 from customer_management.application.command import CustomerCommandUseCase
 from customer_management.application.command_model import (
     ContactPersonCreateModel,
