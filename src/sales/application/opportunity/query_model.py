@@ -44,7 +44,7 @@ class MoneyReadModel(BaseReadModel[Money], NestedModel):
     def from_domain(cls, entity: Money) -> Self:
         return cls(
             currency=CurrencyReadModel.from_domain(entity.currency),
-            amount=entity.amount,
+            amount=entity.amount.normalize(),
         )
 
 
