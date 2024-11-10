@@ -103,7 +103,7 @@ company_info_1 = CompanyInfo(
     address=address_1,
 )
 company_info_2 = CompanyInfo(
-    name="Deutches Automobileunternehmen GmbH",
+    name="Deutsches Automobileunternehmen GmbH",
     industry=industry_2,
     segment=segment_2,
     address=address_2,
