@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Request
 from authentication.presentation.rest.deps import get_current_user
 from building_blocks.infrastructure.vo_service import ValueObjectService
 from customer_management.application.query_model import CountryReadModel, LanguageReadModel
-from customer_management.presentation.container import get_container
+from customer_management.presentation.rest.container import get_container
 
 router = APIRouter(tags=["value objects"], dependencies=[Depends(get_current_user)])
 

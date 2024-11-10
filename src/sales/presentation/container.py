@@ -1,7 +1,5 @@
 from typing import Protocol
 
-from fastapi import Request
-
 from authentication.infrastructure.service.base import AuthenticationService
 from building_blocks.infrastructure.vo_service import ValueObjectService
 from sales.application.lead.command import LeadCommandUseCase
@@ -26,7 +24,3 @@ class SalesApplicationContainer(Protocol):
 
     currency_vo_service: ValueObjectService
     product_vo_service: ValueObjectService
-
-
-def get_container(request: Request) -> SalesApplicationContainer:
-    return request.app.state.container

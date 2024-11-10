@@ -12,7 +12,7 @@ from sales.application.lead.query import LeadQueryUseCase
 from sales.application.lead.query_model import AssignmentReadModel, LeadReadModel
 from sales.application.notes.command_model import NoteCreateModel
 from sales.application.notes.query_model import NoteReadModel
-from sales.presentation.container import get_container
+from sales.presentation.rest.container import get_container
 
 router = APIRouter(prefix="/leads", tags=["leads"], dependencies=[Depends(get_current_user)])
 

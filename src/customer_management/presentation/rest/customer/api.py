@@ -19,7 +19,7 @@ from customer_management.application.query_model import ContactPersonReadModel, 
 from customer_management.domain.value_objects.company_segment import CompanySize, LegalForm
 from customer_management.domain.value_objects.customer_status import CustomerStatusName
 from customer_management.domain.value_objects.industry import IndustryName
-from customer_management.presentation.container import get_container
+from customer_management.presentation.rest.container import get_container
 
 router = APIRouter(prefix="/customers", tags=["customers"], dependencies=[Depends(get_current_user)])
 

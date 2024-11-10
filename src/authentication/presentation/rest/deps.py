@@ -6,7 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from authentication.infrastructure.exceptions import AccountDisabled, InvalidToken
 from authentication.infrastructure.roles import UserRole
 from authentication.infrastructure.service.base import AuthenticationService, UserReadModel
-from authentication.presentation.container import get_container
+from authentication.presentation.rest.container import get_container
 from building_blocks.infrastructure.exceptions import ServerError
 
 security = HTTPBearer(auto_error=False)

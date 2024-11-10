@@ -18,7 +18,7 @@ from sales.application.opportunity.query import OpportunityQueryUseCase
 from sales.application.opportunity.query_model import OfferItemReadModel, OpportunityReadModel
 from sales.domain.value_objects.opportunity_stage import OpportunityStageName
 from sales.domain.value_objects.priority import PriorityLevel
-from sales.presentation.container import get_container
+from sales.presentation.rest.container import get_container
 
 router = APIRouter(prefix="/opportunities", tags=["opportunities"], dependencies=[Depends(get_current_user)])
 

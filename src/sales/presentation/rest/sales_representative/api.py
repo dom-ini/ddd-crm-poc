@@ -14,7 +14,7 @@ from sales.application.sales_representative.command_model import (
 )
 from sales.application.sales_representative.query import SalesRepresentativeQueryUseCase
 from sales.application.sales_representative.query_model import SalesRepresentativeReadModel
-from sales.presentation.container import get_container
+from sales.presentation.rest.container import get_container
 
 router = APIRouter(prefix="/sales-representatives", tags=["sales representatives"])
 

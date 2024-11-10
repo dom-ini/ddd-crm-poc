@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Request
 from authentication.presentation.rest.deps import get_current_user
 from building_blocks.infrastructure.vo_service import ValueObjectService
 from sales.application.opportunity.query_model import CurrencyReadModel, ProductReadModel
-from sales.presentation.container import get_container
+from sales.presentation.rest.container import get_container
 
 router = APIRouter(tags=["value objects"], dependencies=[Depends(get_current_user)])
 
