@@ -24,6 +24,7 @@ warn_unused_configs = true
 authors = ["Dominik <*******@gmail.com>"]
 description = ""
 name = "crm-ddd-poc"
+package-mode = false
 readme = "README.md"
 version = "0.1.0"
 
