@@ -25,5 +25,5 @@ class ContainerManager:
     @classmethod
     def build(cls, persistence_engine: str = PERSISTENCE_ENGINE or "") -> ApplicationContainer:
         if persistence_engine not in cls._factory:
-            raise ValueError(f"Invalid persistence engine. Must be one of these: {cls._factory.keys()}")
+            raise ValueError(f"Invalid persistence engine. Must be one of these: {list(cls._factory.keys())}")
         return cls._factory[persistence_engine]()
