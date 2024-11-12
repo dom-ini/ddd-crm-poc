@@ -14,7 +14,7 @@ def bind_container(instance: FastAPI, container: ApplicationContainer) -> None:
 
 load_dotenv()
 
-app = FastAPI(title="CRM DDD PoC")
+app = FastAPI(title="CRM DDD PoC", version="1.0.0")
 
 app.include_router(auth_router)
 app.include_router(customer_management_router)
